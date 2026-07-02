@@ -1,640 +1,744 @@
-Here is an HTML document that implements a product price lookup tool with barcode scanning, persistent storage, and a streamlined horizontal results display.
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>PriceScan | Instant Product Lookup</title>
-    <!-- Bootstrap 5 + Icons + Fonts -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.5" />
+    <title>XanaLife Branch Sales</title>
+    <!-- Bootstrap 5 + Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js">
+    </script>
+    <!-- SheetJS (XLSX export) -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js">
+    </script>
     <style>
-        * {
-            font-family: 'Inter', sans-serif;
-        }
         body {
-            background: #f1f5f9;
-            min-height: 100vh;
-            padding: 1.5rem;
+            background: #f8fafc;
         }
-        .app-container {
-            max-width: 1400px;
-            margin: 0 auto;
+        .card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.02);
+            transition: transform 0.15s ease;
         }
-        /* Card styling */
-        .card-modern {
+        .card:hover {
+            transform: translateY(-2px);
+        }
+        .card-header {
+            background: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+            font-weight: 600;
+            padding: 1rem 1.25rem;
+        }
+        .stat-card .stat-icon {
+            font-size: 2rem;
+            opacity: 0.6;
+        }
+        .table thead th {
+            background: #1e293b;
+            color: white;
+            font-weight: 500;
+            border: none;
+            white-space: nowrap;
+        }
+        .table tbody tr:hover {
+            background-color: rgba(30, 41, 59, 0.03);
+        }
+        .btn-outline-secondary {
+            border-color: #dbe0e6;
+        }
+        .btn-outline-secondary:hover {
+            background: #f1f4f8;
+            border-color: #c0c8d2;
+        }
+        .filter-bar {
             background: white;
             border-radius: 1.5rem;
-            border: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.05);
-            transition: all 0.2s;
+            padding: 1.25rem 1.5rem;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.02);
         }
-        .card-header-custom {
-            background: transparent;
-            border-bottom: 1px solid #eef2f6;
-            padding: 1rem 1.5rem;
-            font-weight: 600;
-            font-size: 1rem;
-        }
-        /* Collapsible file section */
-        .collapsible-header {
-            cursor: pointer;
-            user-select: none;
-            transition: background 0.2s;
-            border-radius: 1rem;
-        }
-        .collapsible-header:hover {
-            background: #f8fafc;
-        }
-        .rotate-icon {
-            transition: transform 0.2s ease;
-        }
-        .rotate-icon.collapsed {
-            transform: rotate(-90deg);
-        }
-        .collapse-content {
-            transition: all 0.2s;
-        }
-        /* Horizontal scan result table */
-        .horizontal-result-table {
-            background: #ffffff;
-            border-radius: 1.25rem;
-            overflow-x: auto;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-            border: 1px solid #edf2f7;
-        }
-        .result-item {
-            min-width: 180px;
-            padding: 1rem 1.2rem;
-            border-right: 1px solid #edf2f7;
-            background: white;
-        }
-        .result-item:last-child {
-            border-right: none;
-        }
-        .result-label {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 600;
-            color: #5b6e8c;
-        }
-        .result-value {
-            font-size: 1.2rem;
+        h2 {
             font-weight: 700;
-            color: #0f172a;
-            word-break: break-word;
+            letter-spacing: -0.02em;
+            color: #0b1a2b;
         }
-        .price-value {
-            font-size: 1.6rem;
-            font-weight: 800;
-            color: #0f3b2c;
-            line-height: 1.2;
+        .text-muted-light {
+            color: #6c7a8d;
         }
-        .scan-input-group {
-            border-radius: 2rem;
-            background: white;
-            border: 1px solid #e2e8f0;
-            transition: all 0.2s;
-        }
-        .scan-input-group:focus-within {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
-        }
-        .btn-scan {
-            background: #0f172a;
-            border-radius: 2rem;
-            padding: 0.5rem 1.6rem;
-            font-weight: 500;
-            color: white;
-            border: none;
-            transition: 0.15s;
-        }
-        .btn-scan:hover {
-            background: #1e293b;
-            transform: translateY(-1px);
-        }
-        .btn-outline-fuzzy {
-            border-radius: 2rem;
-            border: 1px solid #cbd5e1;
-            background: white;
-            padding: 0.5rem 1.4rem;
-            font-weight: 500;
-        }
-        .btn-outline-fuzzy:hover {
-            background: #f8fafc;
-            border-color: #94a3b8;
-        }
-        .fuzzy-dropdown {
-            border-radius: 1rem;
-            max-height: 300px;
-            overflow-y: auto;
-            background: white;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
-        }
-        .fuzzy-item {
-            cursor: pointer;
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid #f1f5f9;
-            transition: background 0.1s;
-        }
-        .fuzzy-item:hover {
-            background: #f8fafc;
-        }
-        .badge-gtin-sm {
-            background: #eef2ff;
-            color: #1e3a8a;
-            font-family: monospace;
-            font-size: 0.7rem;
-        }
-        .product-preview-table {
-            font-size: 0.85rem;
-        }
-        .product-preview-table td {
-            padding: 0.6rem 0.5rem;
+        #salesTable td {
             vertical-align: middle;
         }
-        .text-price {
-            font-weight: 700;
-            color: #0f3b2c;
+        .chart-container {
+            position: relative;
+            height: 220px;
         }
-        footer {
-            font-size: 0.7rem;
-            color: #6c7a91;
-            text-align: center;
-            margin-top: 2rem;
+        .loading-spinner {
+            display: inline-block;
+            width: 2rem;
+            height: 2rem;
+            border: 0.25rem solid #e9ecef;
+            border-top-color: #1e293b;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
         }
         @media (max-width: 768px) {
-            body { padding: 1rem; }
-            .price-value { font-size: 1.3rem; }
+            .filter-bar {
+                border-radius: 1rem;
+                padding: 1rem;
+            }
+            .stat-card .stat-icon {
+                font-size: 1.6rem;
+            }
+        }
+        .demo-badge {
+            font-size: 0.7rem;
+            background: #f59e0b;
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            margin-left: 0.5rem;
+        }
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+        }
+        .status-badge.loading {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .status-badge.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status-badge.error {
+            background: #fee2e2;
+            color: #991b1b;
         }
     </style>
 </head>
 <body>
+    <div class="container py-4 py-md-5">
+        <!-- header -->
+        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+            <div>
+                <h2 class="mb-0">
+                    <i class="bi bi-bar-chart-fill me-2" style="color:#1e293b;"></i>
+                    XanaLife Branch Sales
+                    <span class="demo-badge" id="dataModeBadge">DEMO</span>
+                </h2>
+                <span class="badge bg-light text-secondary mt-1 px-3 py-2" id="statusBadge">
+                    <i class="bi bi-circle-fill me-1" style="color:#f59e0b;font-size:0.6rem;"></i>
+                    Loading...
+                </span>
+            </div>
+            <div class="d-flex gap-2 mt-2 mt-sm-0">
+                <button class="btn btn-outline-secondary rounded-pill px-4" id="exportExcelBtn">
+                    <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
+                </button>
+                <button class="btn btn-outline-secondary rounded-pill px-4" id="refreshBtn">
+                    <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+                </button>
+            </div>
+        </div>
 
-<div class="app-container">
-    <!-- Header minimal -->
-    <div class="d-flex align-items-center gap-2 mb-4">
-        <i class="bi bi-qr-code-scan fs-2" style="color: #0f3b2c;"></i>
-        <h3 class="fw-bold m-0" style="color: #0c4e6e;">Price<span style="color:#0b5e42;">Scan</span></h3>
-        <span class="ms-auto small text-muted"><i class="bi bi-database"></i> <span id="globalCountBadge">0 items</span></span>
-    </div>
-
-    <div class="row g-4">
-        <!-- LEFT COLUMN: File loader (collapsible) + product table preview -->
-        <div class="col-lg-5">
-            <!-- File loader card with collapsible content -->
-            <div class="card-modern mb-4">
-                <div class="collapsible-header d-flex justify-content-between align-items-center p-3" id="toggleFilePanel">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-file-spreadsheet-fill text-primary"></i>
-                        <span class="fw-semibold">Product Catalog</span>
-                        <span id="loadStatusBadge" class="badge bg-secondary bg-opacity-10 text-dark ms-2">No file</span>
-                    </div>
-                    <i class="bi bi-chevron-down rotate-icon" id="collapseIcon"></i>
+        <!-- Filters card -->
+        <div class="filter-bar mb-4">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold small text-uppercase text-secondary">Branch</label>
+                    <select id="branch" class="form-select form-select-lg rounded-pill border-0 bg-light">
+                        <option value="">All Branches</option>
+                    </select>
                 </div>
-                <div id="fileCollapseContent" class="collapse-content px-3 pb-3" style="display: none;">
-                    <div class="border-top pt-3 mt-1">
-                        <label for="excelFileInput" class="btn btn-outline-primary rounded-pill w-100 py-2">
-                            <i class="bi bi-cloud-upload"></i> Load Excel (.xlsx, .xls)
-                        </label>
-                        <input type="file" id="excelFileInput" accept=".xlsx, .xls" class="d-none">
-                        <div class="small text-secondary mt-2 text-center">Requires columns: <strong>Description, Unit Price, GTIN</strong></div>
-                        <div id="fileDetailMsg" class="mt-2 small text-center text-muted">No active catalog</div>
-                        <button id="clearAllDataBtn" class="btn btn-sm btn-link text-danger text-decoration-none mt-2 w-100"><i class="bi bi-trash"></i> Clear & remove data</button>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold small text-uppercase text-secondary">Start Date</label>
+                    <input type="date" id="start" class="form-control form-control-lg rounded-pill border-0 bg-light" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold small text-uppercase text-secondary">End Date</label>
+                    <input type="date" id="end" class="form-control form-control-lg rounded-pill border-0 bg-light" />
+                </div>
+                <div class="col-md-3 d-grid">
+                    <button class="btn btn-dark rounded-pill py-2 fw-semibold" id="searchBtn" style="background:#1e293b; border-color:#1e293b;">
+                        <i class="bi bi-search me-2"></i>Apply filters
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card stat-card h-100">
+                    <div class="card-body d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted-light small text-uppercase fw-semibold">Total Sales</span>
+                            <h3 class="mb-0 fw-bold" id="totalSales">0</h3>
+                        </div>
+                        <div class="stat-icon text-success"><i class="bi bi-cash-stack"></i></div>
                     </div>
                 </div>
             </div>
-
-            <!-- Product table preview (compact) -->
-            <div class="card-modern">
-                <div class="card-header-custom d-flex justify-content-between">
-                    <span><i class="bi bi-table"></i> Products loaded</span>
-                    <span class="badge bg-light text-dark rounded-pill" id="productCountDisplay">0</span>
+            <div class="col-md-4">
+                <div class="card stat-card h-100">
+                    <div class="card-body d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted-light small text-uppercase fw-semibold">Customers</span>
+                            <h3 class="mb-0 fw-bold" id="customers">0</h3>
+                        </div>
+                        <div class="stat-icon text-primary"><i class="bi bi-people"></i></div>
+                    </div>
                 </div>
-                <div style="max-height: 360px; overflow-y: auto;">
-                    <table class="table table-sm mb-0 product-preview-table">
-                        <thead class="table-light sticky-top">
-                            <tr><th>Description</th><th>Price</th><th class="d-none d-md-table-cell">GTIN</th></tr>
+            </div>
+            <div class="col-md-4">
+                <div class="card stat-card h-100">
+                    <div class="card-body d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="text-muted-light small text-uppercase fw-semibold">Basket Value</span>
+                            <h3 class="mb-0 fw-bold" id="basketValue">0.00</h3>
+                        </div>
+                        <div class="stat-icon text-warning"><i class="bi bi-cart-check"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts row -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                        <span>Sales by Branch</span>
+                        <span class="badge bg-light text-secondary">top 5</span>
+                    </div>
+                    <div class="card-body chart-container">
+                        <canvas id="branchChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-transparent">Daily Sales Trend</div>
+                    <div class="card-body chart-container">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="card">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-table me-2"></i>Detailed Records</span>
+                <span class="badge bg-secondary bg-opacity-10 text-secondary" id="rowCount">0 rows</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="dataTable">
+                        <thead>
+                            <tr>
+                                <th>DATE</th>
+                                <th>BRANCH</th>
+                                <th>CASH</th>
+                                <th>MPESA</th>
+                                <th>CREDIT CARD</th>
+                                <th>INVOICE</th>
+                                <th>TOTAL</th>
+                                <th>CUSTOMERS</th>
+                                <th>B/VALUE</th>
+                            </tr>
                         </thead>
-                        <tbody id="productTablePreview">
-                            <tr><td colspan="3" class="text-center text-muted py-4">No products — load an Excel file</td></tr>
+                        <tbody id="salesTable">
+                            <tr>
+                                <td colspan="9" class="text-center py-4">
+                                    <div class="d-flex justify-content-center align-items-center gap-3">
+                                        <div class="loading-spinner"></div>
+                                        <span class="text-muted">Loading data…</span>
+                                    </div>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
-
-        <!-- RIGHT COLUMN: Scan & Search -->
-        <div class="col-lg-7">
-            <!-- HORIZONTAL RESULT TABLE (always visible, shows scan output) -->
-            <div class="horizontal-result-table d-flex flex-wrap flex-nowrap mb-4" id="scanResultHorizontal">
-                <div class="result-item flex-grow-1">
-                    <div class="result-label"><i class="bi bi-upc-scan"></i> GTIN SCANNED</div>
-                    <div class="result-value" id="horizGtin">—</div>
-                </div>
-                <div class="result-item flex-grow-1">
-                    <div class="result-label">PRODUCT DESCRIPTION</div>
-                    <div class="result-value" id="horizDesc">—</div>
-                </div>
-                <div class="result-item flex-grow-1">
-                    <div class="result-label">SELLING PRICE</div>
-                    <div class="price-value" id="horizPrice">—</div>
-                </div>
-            </div>
-            <!-- Status message placeholder -->
-            <div id="scanStatusMsg" class="small text-danger mb-2 ps-1"></div>
-
-            <!-- Barcode scanner section -->
-            <div class="card-modern p-3 mb-4">
-                <div class="d-flex flex-wrap gap-2 align-items-center">
-                    <div class="flex-grow-1">
-                        <div class="scan-input-group d-flex align-items-center ps-3 pe-1 py-1">
-                            <i class="bi bi-upc-scan text-secondary me-2"></i>
-                            <input type="text" id="barcodeScanInput" class="form-control border-0 shadow-none" placeholder="Scan or type GTIN... (e.g., 890123456789)" autocomplete="off">
-                            <button id="triggerScanBtn" class="btn-scan ms-2">Scan</button>
-                        </div>
-                    </div>
-                    <button id="focusScanBtn" class="btn btn-light border rounded-circle" style="width: 40px;"><i class="bi bi-cursor"></i></button>
-                </div>
-            </div>
-
-            <!-- Fuzzy search area -->
-            <div class="card-modern p-3">
-                <label class="fw-semibold small mb-2"><i class="bi bi-search-heart"></i> Fuzzy / close match search</label>
-                <div class="d-flex gap-2">
-                    <div class="flex-grow-1">
-                        <input type="text" id="fuzzySearchInput" class="form-control rounded-pill" placeholder="Type product name (e.g., 'organic milk 2%')">
-                    </div>
-                    <button id="fuzzySearchTrigger" class="btn btn-outline-fuzzy">Search</button>
-                </div>
-                <div id="fuzzyResultsArea" class="mt-3 fuzzy-dropdown" style="display: none;"></div>
-                <div id="fuzzyEmptyMsg" class="mt-2 small text-center text-muted d-none">No close matches found</div>
-            </div>
-        </div>
     </div>
-    <footer><i class="bi bi-database-fill-check"></i> Data persists in IndexedDB until new file is loaded or cleared</footer>
-</div>
 
-<script>
-    // ---------- INDEXED DB SETUP ----------
-    const DB_NAME = 'PriceScanDB_v2';
-    const STORE = 'catalog';
-    let dbInstance = null;
-    let activeProducts = [];      // in-memory array of { description, unitPrice, gtin }
-    let fuseSearch = null;
+    <script>
+        (function() {
+            // ------------------------------------------------------------
+            //  CONFIG & STATE
+            // ------------------------------------------------------------
+            const API = "https://script.google.com/macros/s/AKfycbyBZt6KqVPjU7boOunFBEAzHb8pPDLxbg8dizECxyUJMFa5bcElR0UVe1AcWvNpcIxo/exec";
+            let cachedData = null;
+            let filteredRows = [];
+            let usingDemoData = false;
+            let dataLoadAttempted = false;
 
-    // Open / init DB
-    function initDB() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open(DB_NAME, 1);
-            request.onerror = () => reject(request.error);
-            request.onsuccess = (e) => {
-                dbInstance = e.target.result;
-                resolve(dbInstance);
-            };
-            request.onupgradeneeded = (e) => {
-                const db = e.target.result;
-                if (db.objectStoreNames.contains(STORE)) db.deleteObjectStore(STORE);
-                const store = db.createObjectStore(STORE, { keyPath: 'gtin' });
-                store.createIndex('gtin_idx', 'gtin', { unique: true });
-            };
-        });
-    }
+            let branchChartInstance = null;
+            let trendChartInstance = null;
 
-    // Save products array (replace entire store)
-    async function storeProducts(products) {
-        if (!dbInstance) await initDB();
-        return new Promise((resolve, reject) => {
-            const tx = dbInstance.transaction([STORE], 'readwrite');
-            const store = tx.objectStore(STORE);
-            const clearReq = store.clear();
-            clearReq.onsuccess = () => {
-                if (products.length === 0) { resolve(); return; }
-                let processed = 0;
-                let errors = 0;
-                products.forEach(prod => {
-                    const req = store.put(prod);
-                    req.onsuccess = () => { processed++; if (processed + errors === products.length) resolve(); };
-                    req.onerror = () => { errors++; if (processed + errors === products.length) resolve(); };
-                });
-            };
-            clearReq.onerror = (e) => reject(e);
-        });
-    }
+            const branchSelect = document.getElementById('branch');
+            const startInput = document.getElementById('start');
+            const endInput = document.getElementById('end');
+            const salesTable = document.getElementById('salesTable');
+            const totalSalesEl = document.getElementById('totalSales');
+            const customersEl = document.getElementById('customers');
+            const basketEl = document.getElementById('basketValue');
+            const rowCountEl = document.getElementById('rowCount');
+            const exportBtn = document.getElementById('exportExcelBtn');
+            const refreshBtn = document.getElementById('refreshBtn');
+            const statusBadge = document.getElementById('statusBadge');
+            const dataModeBadge = document.getElementById('dataModeBadge');
 
-    // Load all products from IndexedDB
-    async function loadAllProducts() {
-        if (!dbInstance) await initDB();
-        return new Promise((resolve, reject) => {
-            const tx = dbInstance.transaction([STORE], 'readonly');
-            const store = tx.objectStore(STORE);
-            const request = store.getAll();
-            request.onsuccess = () => {
-                activeProducts = request.result || [];
-                resolve(activeProducts);
-            };
-            request.onerror = () => reject(request.error);
-        });
-    }
-
-    async function clearEntireCatalog() {
-        if (!dbInstance) await initDB();
-        return new Promise((resolve, reject) => {
-            const tx = dbInstance.transaction([STORE], 'readwrite');
-            const store = tx.objectStore(STORE);
-            const req = store.clear();
-            req.onsuccess = () => { activeProducts = []; resolve(); };
-            req.onerror = () => reject(req.error);
-        });
-    }
-
-    // ---------- UI HELPERS ----------
-    function updateUIFromMemory() {
-        // Update counters & table preview
-        const count = activeProducts.length;
-        document.getElementById('productCountDisplay').innerText = count;
-        document.getElementById('globalCountBadge').innerHTML = `${count} item${count !== 1 ? 's' : ''}`;
-        const statusBadge = document.getElementById('loadStatusBadge');
-        if (count === 0) {
-            statusBadge.innerHTML = 'No file';
-            statusBadge.className = 'badge bg-secondary bg-opacity-10 text-dark ms-2';
-            document.getElementById('fileDetailMsg').innerHTML = '<i class="bi bi-info-circle"></i> No catalog loaded. Upload Excel.';
-        } else {
-            statusBadge.innerHTML = `${count} products loaded`;
-            statusBadge.className = 'badge bg-success bg-opacity-15 text-success ms-2';
-            document.getElementById('fileDetailMsg').innerHTML = `<i class="bi bi-check-circle-fill text-success"></i> ${count} entries in persistent storage.`;
-        }
-        renderProductPreviewTable(activeProducts);
-        rebuildFuseIndex();
-        // Clear horizontal result and scan status
-        clearHorizontalResult();
-    }
-
-    function renderProductPreviewTable(products) {
-        const tbody = document.getElementById('productTablePreview');
-        if (!products.length) {
-            tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-4">No products loaded — upload Excel file</td></tr>';
-            return;
-        }
-        const limited = products.slice(0, 40);
-        tbody.innerHTML = limited.map(p => `
-            <tr>
-                <td class="text-truncate" style="max-width: 180px;" title="${escapeHtml(p.description)}">${escapeHtml(p.description.length > 40 ? p.description.substring(0,38)+'...' : p.description)}</td>
-                <td class="text-price">${Number(p.unitPrice).toFixed(2)}</td>
-                <td class="d-none d-md-table-cell"><span class="badge badge-gtin-sm">${escapeHtml(p.gtin)}</span></td>
-            </tr>
-        `).join('');
-        if(products.length > 40) {
-            tbody.innerHTML += `<tr><td colspan="3" class="small text-muted text-center">+ ${products.length-40} more products</td></tr>`;
-        }
-    }
-
-    function clearHorizontalResult() {
-        document.getElementById('horizGtin').innerText = '—';
-        document.getElementById('horizDesc').innerText = '—';
-        document.getElementById('horizPrice').innerText = '—';
-        document.getElementById('scanStatusMsg').innerHTML = '';
-    }
-
-    function displayScanResultOnHorizontal(product, scannedGtin) {
-        if (product) {
-            document.getElementById('horizGtin').innerHTML = escapeHtml(product.gtin);
-            document.getElementById('horizDesc').innerHTML = escapeHtml(product.description);
-            document.getElementById('horizPrice').innerHTML = Number(product.unitPrice).toFixed(2);
-            document.getElementById('scanStatusMsg').innerHTML = '<span class="text-success"><i class="bi bi-check-circle"></i> Product found</span>';
-        } else {
-            document.getElementById('horizGtin').innerHTML = escapeHtml(scannedGtin);
-            document.getElementById('horizDesc').innerHTML = 'Not found in catalog';
-            document.getElementById('horizPrice').innerHTML = '—';
-            document.getElementById('scanStatusMsg').innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle"></i> No matching GTIN</span>';
-        }
-    }
-
-    function lookupProductByGTIN(gtinCode) {
-        if (!activeProducts.length) return null;
-        const normalized = String(gtinCode).trim();
-        return activeProducts.find(p => String(p.gtin).trim() === normalized) || null;
-    }
-
-    // Fuzzy logic
-    function rebuildFuseIndex() {
-        if (!activeProducts.length) {
-            fuseSearch = null;
-            return;
-        }
-        fuseSearch = new Fuse(activeProducts, {
-            keys: ['description'],
-            threshold: 0.38,
-            distance: 70,
-            includeScore: false,
-            minMatchCharLength: 2
-        });
-    }
-
-    function performFuzzySearch(query) {
-        if (!query.trim() || !fuseSearch) return [];
-        const results = fuseSearch.search(query.trim());
-        return results.slice(0, 8).map(res => res.item);
-    }
-
-    function renderFuzzyResults(matches) {
-        const container = document.getElementById('fuzzyResultsArea');
-        const emptyMsg = document.getElementById('fuzzyEmptyMsg');
-        if (!matches.length) {
-            container.style.display = 'none';
-            emptyMsg.classList.remove('d-none');
-            return;
-        }
-        emptyMsg.classList.add('d-none');
-        container.style.display = 'block';
-        container.innerHTML = matches.map(prod => `
-            <div class="fuzzy-item d-flex justify-content-between align-items-center" data-gtin="${escapeHtml(prod.gtin)}">
-                <div>
-                    <strong>${escapeHtml(prod.description)}</strong>
-                    <div><small class="text-muted">GTIN: ${escapeHtml(prod.gtin)}</small></div>
-                </div>
-                <div class="fw-bold fs-6 text-price">${Number(prod.unitPrice).toFixed(2)}</div>
-            </div>
-        `).join('');
-        // attach click event to each fuzzy result
-        document.querySelectorAll('.fuzzy-item').forEach(el => {
-            el.addEventListener('click', (e) => {
-                const gtin = el.getAttribute('data-gtin');
-                const product = activeProducts.find(p => String(p.gtin) === gtin);
-                if (product) {
-                    displayScanResultOnHorizontal(product, product.gtin);
-                    document.getElementById('barcodeScanInput').value = product.gtin;
-                    // also collapse fuzzy area for cleanliness
-                    container.style.display = 'none';
-                    emptyMsg.classList.add('d-none');
+            // ------------------------------------------------------------
+            //  DEMO DATA (realistic sample)
+            // ------------------------------------------------------------
+            function generateDemoData() {
+                const branches = ['Nairobi CBD', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Thika', 'Malindi'];
+                const data = [];
+                const today = new Date();
+                for (let i = 90; i >= 0; i--) {
+                    const d = new Date(today);
+                    d.setDate(d.getDate() - i);
+                    const dateStr = d.toISOString().split('T')[0];
+                    const branch = branches[Math.floor(Math.random() * branches.length)];
+                    const cash = Math.round((Math.random() * 150000 + 20000) / 100) * 100;
+                    const mpesa = Math.round((Math.random() * 200000 + 30000) / 100) * 100;
+                    const card = Math.round((Math.random() * 100000 + 10000) / 100) * 100;
+                    const invoice = Math.round((Math.random() * 80000 + 5000) / 100) * 100;
+                    const total = cash + mpesa + card + invoice;
+                    const customers = Math.floor(Math.random() * 80 + 5);
+                    data.push([dateStr, branch, cash, mpesa, card, invoice, total, customers]);
                 }
-            });
-        });
-    }
-
-    function clearFuzzyDisplay() {
-        document.getElementById('fuzzyResultsArea').style.display = 'none';
-        document.getElementById('fuzzyEmptyMsg').classList.add('d-none');
-    }
-
-    // Excel parsing using SheetJS
-    function handleExcelFile(file) {
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-            const data = new Uint8Array(evt.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const rows = XLSX.utils.sheet_to_json(sheet);
-            if (!rows.length) {
-                alert("Excel file is empty.");
-                return;
+                return data;
             }
-            const parsed = [];
-            for (let row of rows) {
-                let desc = row['Description'] || row['description'] || row['DESCRIPTION'] || null;
-                let priceRaw = row['Unit Price'] !== undefined ? row['Unit Price'] : (row['unit price'] !== undefined ? row['unit price'] : (row['UnitPrice'] !== undefined ? row['UnitPrice'] : null));
-                let gtinRaw = row['GTIN'] || row['gtin'] || row['Gtin'] || null;
-                if (desc && priceRaw !== null && gtinRaw !== null) {
-                    let priceNum = parseFloat(priceRaw);
-                    if (!isNaN(priceNum)) {
-                        parsed.push({
-                            description: String(desc).trim(),
-                            unitPrice: priceNum,
-                            gtin: String(gtinRaw).trim()
+
+            // ------------------------------------------------------------
+            //  HELPERS
+            // ------------------------------------------------------------
+            function isHeaderRow(row) {
+                if (!row || !Array.isArray(row) || row.length === 0) return false;
+                const first = String(row[0] || '').toLowerCase();
+                return first.includes('date') || first.includes('branch') || first.includes('total') || first.includes(
+                'sales');
+            }
+
+            function formatDate(dateValue) {
+                if (!dateValue) return '';
+                if (typeof dateValue === 'string' && (dateValue.toLowerCase().includes('date') || dateValue.toLowerCase()
+                        .includes('total'))) return dateValue;
+                let d = new Date(dateValue);
+                if (isNaN(d.getTime())) {
+                    const m = String(dateValue).match(/(\d{4})-(\d{2})-(\d{2})/);
+                    if (m) return `${m[3]}-${m[2]}-${m[1].slice(-2)}`;
+                    return String(dateValue);
+                }
+                const dd = String(d.getDate()).padStart(2, '0');
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const yy = String(d.getFullYear()).slice(-2);
+                return `${dd}-${mm}-${yy}`;
+            }
+
+            function extractDateString(dateValue) {
+                if (!dateValue) return null;
+                if (typeof dateValue === 'string' && (dateValue.toLowerCase().includes('date') || dateValue.toLowerCase()
+                        .includes('total'))) return null;
+                let d = new Date(dateValue);
+                if (isNaN(d.getTime())) {
+                    const m = String(dateValue).match(/(\d{4})-(\d{2})-(\d{2})/);
+                    if (m) return m[0];
+                    return null;
+                }
+                const y = d.getFullYear();
+                const mo = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${y}-${mo}-${day}`;
+            }
+
+            function getUniqueBranches(rows) {
+                const set = new Set();
+                rows.forEach(row => {
+                    const b = row[1] ? String(row[1]).trim() : '';
+                    if (b && !b.toLowerCase().includes('branch')) set.add(b);
+                });
+                return Array.from(set).sort();
+            }
+
+            function updateBranchFilter(rows) {
+                const current = branchSelect.value;
+                const branches = getUniqueBranches(rows);
+                branchSelect.innerHTML = '<option value="">All Branches</option>';
+                branches.forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b;
+                    opt.textContent = b;
+                    branchSelect.appendChild(opt);
+                });
+                if (current && branches.includes(current)) branchSelect.value = current;
+            }
+
+            function setStatus(type, message) {
+                statusBadge.innerHTML = '';
+                const icon = document.createElement('i');
+                icon.className = 'bi bi-circle-fill me-1';
+                icon.style.fontSize = '0.6rem';
+                if (type === 'loading') {
+                    icon.style.color = '#f59e0b';
+                    statusBadge.className = 'badge bg-light text-secondary mt-1 px-3 py-2 status-badge loading';
+                    statusBadge.appendChild(icon);
+                    statusBadge.appendChild(document.createTextNode(' ' + message));
+                } else if (type === 'success') {
+                    icon.style.color = '#10b981';
+                    statusBadge.className = 'badge bg-light text-secondary mt-1 px-3 py-2 status-badge success';
+                    statusBadge.appendChild(icon);
+                    statusBadge.appendChild(document.createTextNode(' ' + message));
+                } else if (type === 'error') {
+                    icon.style.color = '#ef4444';
+                    statusBadge.className = 'badge bg-light text-secondary mt-1 px-3 py-2 status-badge error';
+                    statusBadge.appendChild(icon);
+                    statusBadge.appendChild(document.createTextNode(' ' + message));
+                }
+            }
+
+            // ------------------------------------------------------------
+            //  LOAD & FILTER
+            // ------------------------------------------------------------
+            async function loadSales(forceRefresh = false) {
+                try {
+                    setStatus('loading', 'Loading data...');
+                    dataModeBadge.textContent = 'LOADING';
+                    dataModeBadge.style.background = '#f59e0b';
+
+                    // Show loading state
+                    salesTable.innerHTML = `<tr><td colspan="9" class="text-center py-4">
+                        <div class="d-flex justify-content-center align-items-center gap-3">
+                            <div class="loading-spinner"></div>
+                            <span class="text-muted">Loading data…</span>
+                        </div>
+                    </td></tr>`;
+
+                    // Try to fetch real data
+                    let dataLoaded = false;
+                    if (!cachedData || forceRefresh) {
+                        try {
+                            const resp = await fetch(API, {
+                                method: 'GET',
+                                mode: 'cors',
+                                headers: {
+                                    'Accept': 'application/json'
+                                }
+                            });
+
+                            if (resp.ok) {
+                                let raw = await resp.json();
+                                if (!Array.isArray(raw)) {
+                                    if (raw.data && Array.isArray(raw.data)) raw = raw.data;
+                                    else if (raw.values && Array.isArray(raw.values)) raw = raw.values;
+                                    else throw new Error('Invalid data format');
+                                }
+                                if (raw && raw.length > 0) {
+                                    cachedData = raw;
+                                    dataLoaded = true;
+                                    usingDemoData = false;
+                                    dataModeBadge.textContent = 'LIVE';
+                                    dataModeBadge.style.background = '#10b981';
+                                    setStatus('success', 'Live data loaded');
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('Failed to load live data, using demo:', e);
+                        }
+                    } else if (cachedData) {
+                        dataLoaded = true;
+                    }
+
+                    // If no data loaded, use demo data
+                    if (!dataLoaded) {
+                        if (!cachedData || forceRefresh) {
+                            cachedData = generateDemoData();
+                        }
+                        usingDemoData = true;
+                        dataModeBadge.textContent = 'DEMO';
+                        dataModeBadge.style.background = '#f59e0b';
+                        setStatus('success', 'Demo data (live unavailable)');
+                    }
+
+                    let data = cachedData;
+                    if (!data || data.length === 0) {
+                        renderEmpty('No data available');
+                        updateCharts([]);
+                        updateKPIs(0, 0, 0);
+                        return;
+                    }
+
+                    let rows = data;
+                    if (rows.length > 0 && isHeaderRow(rows[0])) rows = rows.slice(1);
+                    if (rows.length === 0) {
+                        renderEmpty('No data rows');
+                        updateCharts([]);
+                        updateKPIs(0, 0, 0);
+                        return;
+                    }
+
+                    updateBranchFilter(rows);
+
+                    const branch = branchSelect.value;
+                    const start = startInput.value;
+                    const end = endInput.value;
+
+                    let filtered = rows;
+                    if (branch) {
+                        filtered = filtered.filter(r => String(r[1] || '').trim() === branch);
+                    }
+                    if (start || end) {
+                        filtered = filtered.filter(r => {
+                            const ds = extractDateString(r[0]);
+                            if (!ds) return true;
+                            if (start && ds < start) return false;
+                            if (end && ds > end) return false;
+                            return true;
                         });
                     }
+
+                    filteredRows = filtered;
+
+                    if (filtered.length === 0) {
+                        renderEmpty('No data matches your filters');
+                        updateCharts([]);
+                        updateKPIs(0, 0, 0);
+                        return;
+                    }
+
+                    let html = '';
+                    let totalSales = 0,
+                        totalCustomers = 0;
+                    filtered.forEach(row => {
+                        const dateF = formatDate(row[0]);
+                        const cash = Number(row[2] || 0);
+                        const mpesa = Number(row[3] || 0);
+                        const card = Number(row[4] || 0);
+                        const invoice = Number(row[5] || 0);
+                        const total = Number(row[6] || 0);
+                        const customers = Number(row[7] || 0);
+                        const bval = customers > 0 ? (total / customers) : 0;
+                        totalSales += total;
+                        totalCustomers += customers;
+
+                        html += `<tr>
+                            <td>${dateF}</td>
+                            <td>${row[1] || ''}</td>
+                            <td>${cash.toLocaleString()}</td>
+                            <td>${mpesa.toLocaleString()}</td>
+                            <td>${card.toLocaleString()}</td>
+                            <td>${invoice.toLocaleString()}</td>
+                            <td><strong>${total.toLocaleString()}</strong></td>
+                            <td>${customers}</td>
+                            <td>${bval.toFixed(2)}</td>
+                        </tr>`;
+                    });
+
+                    salesTable.innerHTML = html;
+                    rowCountEl.textContent = `${filtered.length} rows`;
+
+                    const basket = totalCustomers > 0 ? (totalSales / totalCustomers) : 0;
+                    updateKPIs(totalSales, totalCustomers, basket);
+                    updateCharts(filtered);
+
+                    dataLoadAttempted = true;
+
+                } catch (err) {
+                    console.error('Load error:', err);
+                    setStatus('error', 'Error loading data');
+                    // Fallback to demo if not already using it
+                    if (!usingDemoData) {
+                        cachedData = generateDemoData();
+                        usingDemoData = true;
+                        dataModeBadge.textContent = 'DEMO';
+                        dataModeBadge.style.background = '#f59e0b';
+                        setStatus('success', 'Demo data (error recovery)');
+                        loadSales(false);
+                        return;
+                    }
+                    renderEmpty('Error loading data. Please check connection.');
+                    updateCharts([]);
+                    updateKPIs(0, 0, 0);
                 }
             }
-            if (parsed.length === 0) {
-                alert("No valid rows with Description, Unit Price, GTIN columns found.");
-                return;
+
+            function renderEmpty(msg) {
+                salesTable.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">${msg}</td></tr>`;
+                rowCountEl.textContent = '0 rows';
             }
-            // Save to IndexedDB
-            storeProducts(parsed).then(async () => {
-                await loadAllProducts();
-                updateUIFromMemory();
-                clearHorizontalResult();
-                clearFuzzyDisplay();
-                document.getElementById('fileDetailMsg').innerHTML = `<i class="bi bi-check-circle-fill text-success"></i> Loaded ${parsed.length} products successfully.`;
-                // Collapse the file panel after loading (by default collapsed on load)
-                const collapseDiv = document.getElementById('fileCollapseContent');
-                const icon = document.getElementById('collapseIcon');
-                if (collapseDiv.style.display !== 'none') {
-                    collapseDiv.style.display = 'none';
-                    icon.classList.add('collapsed');
+
+            function updateKPIs(total, customers, basket) {
+                totalSalesEl.textContent = total.toLocaleString();
+                customersEl.textContent = customers;
+                basketEl.textContent = basket.toFixed(2);
+            }
+
+            // ------------------------------------------------------------
+            //  CHARTS
+            // ------------------------------------------------------------
+            function updateCharts(rows) {
+                if (!rows || rows.length === 0) {
+                    if (branchChartInstance) { branchChartInstance.destroy();
+                        branchChartInstance = null; }
+                    if (trendChartInstance) { trendChartInstance.destroy();
+                        trendChartInstance = null; }
+                    return;
                 }
-            }).catch(err => {
-                console.error(err);
-                alert("Failed to save to database.");
+
+                // Branch chart
+                const branchMap = new Map();
+                rows.forEach(r => {
+                    const branch = String(r[1] || 'Unknown').trim();
+                    const total = Number(r[6] || 0);
+                    branchMap.set(branch, (branchMap.get(branch) || 0) + total);
+                });
+                const sorted = Array.from(branchMap.entries()).sort((a, b) => b[1] - a[1]);
+                const labels = sorted.map(e => e[0]);
+                const values = sorted.map(e => e[1]);
+
+                const ctx1 = document.getElementById('branchChart').getContext('2d');
+                if (branchChartInstance) branchChartInstance.destroy();
+                branchChartInstance = new Chart(ctx1, {
+                    type: 'bar',
+                    data: {
+                        labels: labels.length ? labels : ['No data'],
+                        datasets: [{
+                            label: 'Total Sales',
+                            data: values.length ? values : [0],
+                            backgroundColor: ['#3b82f6', '#8b5cf6', '#06b6d4', '#f59e0b', '#ef4444', '#10b981'],
+                            borderRadius: 6,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } } }
+                    }
+                });
+
+                // Trend chart
+                const dateMap = new Map();
+                rows.forEach(r => {
+                    const ds = extractDateString(r[0]);
+                    if (!ds) return;
+                    const total = Number(r[6] || 0);
+                    dateMap.set(ds, (dateMap.get(ds) || 0) + total);
+                });
+                const sortedDates = Array.from(dateMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+                const dateLabels = sortedDates.map(e => {
+                    const parts = e[0].split('-');
+                    return `${parts[2]}/${parts[1]}`;
+                });
+                const dateValues = sortedDates.map(e => e[1]);
+
+                const ctx2 = document.getElementById('trendChart').getContext('2d');
+                if (trendChartInstance) trendChartInstance.destroy();
+                trendChartInstance = new Chart(ctx2, {
+                    type: 'line',
+                    data: {
+                        labels: dateLabels.length ? dateLabels : ['No data'],
+                        datasets: [{
+                            label: 'Daily Sales',
+                            data: dateValues.length ? dateValues : [0],
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37,99,235,0.08)',
+                            fill: true,
+                            tension: 0.2,
+                            pointRadius: 3,
+                            pointBackgroundColor: '#2563eb',
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } } }
+                    }
+                });
+            }
+
+            // ------------------------------------------------------------
+            //  EXPORT EXCEL
+            // ------------------------------------------------------------
+            function exportToExcel() {
+                if (!filteredRows || filteredRows.length === 0) {
+                    alert('No data to export. Please apply filters to show records.');
+                    return;
+                }
+                const header = ['DATE', 'BRANCH', 'CASH SALES', 'MPESA SALES', 'CREDIT CARD SALES', 'INVOICE SALES',
+                    'TOTAL SALES', 'CUSTOMERS', 'B/VALUE'
+                ];
+                const rows = filteredRows.map(r => {
+                    const total = Number(r[6] || 0);
+                    const customers = Number(r[7] || 0);
+                    const bval = customers > 0 ? (total / customers) : 0;
+                    return [
+                        formatDate(r[0]),
+                        String(r[1] || ''),
+                        Number(r[2] || 0),
+                        Number(r[3] || 0),
+                        Number(r[4] || 0),
+                        Number(r[5] || 0),
+                        total,
+                        customers,
+                        bval
+                    ];
+                });
+                const wsData = [header, ...rows];
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(wsData);
+                XLSX.utils.book_append_sheet(wb, ws, 'Sales');
+                XLSX.writeFile(wb, `XanaLife_Sales_${new Date().toISOString().slice(0,10)}.xlsx`);
+            }
+
+            // ------------------------------------------------------------
+            //  INIT
+            // ------------------------------------------------------------
+            document.addEventListener('DOMContentLoaded', function() {
+                // Set default date range (last 30 days)
+                const today = new Date();
+                const thirtyDaysAgo = new Date(today);
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                startInput.value = thirtyDaysAgo.toISOString().split('T')[0];
+                endInput.value = today.toISOString().split('T')[0];
+
+                // Load data
+                loadSales(false);
+
+                // Event listeners
+                document.getElementById('searchBtn').addEventListener('click', function() {
+                    loadSales(false);
+                });
+                branchSelect.addEventListener('change', function() {
+                    loadSales(false);
+                });
+                startInput.addEventListener('change', function() {
+                    loadSales(false);
+                });
+                endInput.addEventListener('change', function() {
+                    loadSales(false);
+                });
+                exportBtn.addEventListener('click', exportToExcel);
+                refreshBtn.addEventListener('click', function() {
+                    cachedData = null;
+                    loadSales(true);
+                });
             });
-        };
-        reader.readAsArrayBuffer(file);
-    }
 
-    // ---------- EVENT HANDLERS & INITIALIZATION ----------
-    document.addEventListener('DOMContentLoaded', async () => {
-        await initDB();
-        await loadAllProducts();
-        updateUIFromMemory();
-        // By default: file panel collapsed (UI matches spec: on load, collapse the loaded file section)
-        const collapseDiv = document.getElementById('fileCollapseContent');
-        const icon = document.getElementById('collapseIcon');
-        collapseDiv.style.display = 'none';
-        icon.classList.add('collapsed');
-    });
-
-    // Toggle file panel (collapsible)
-    const toggleBtn = document.getElementById('toggleFilePanel');
-    const collapseDiv = document.getElementById('fileCollapseContent');
-    const collapseIcon = document.getElementById('collapseIcon');
-    toggleBtn.addEventListener('click', () => {
-        const isVisible = collapseDiv.style.display !== 'none';
-        if (isVisible) {
-            collapseDiv.style.display = 'none';
-            collapseIcon.classList.add('collapsed');
-        } else {
-            collapseDiv.style.display = 'block';
-            collapseIcon.classList.remove('collapsed');
-        }
-    });
-
-    // File upload
-    const fileInput = document.getElementById('excelFileInput');
-    const fileLabel = document.querySelector('label[for="excelFileInput"]');
-    fileLabel?.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length) {
-            handleExcelFile(e.target.files[0]);
-        }
-        fileInput.value = '';
-    });
-
-    // Clear DB button
-    document.getElementById('clearAllDataBtn').addEventListener('click', async () => {
-        if (confirm("Remove all product data? You'll need to upload a new Excel file.")) {
-            await clearEntireCatalog();
-            await loadAllProducts();
-            updateUIFromMemory();
-            clearHorizontalResult();
-            clearFuzzyDisplay();
-            document.getElementById('fileDetailMsg').innerHTML = 'No active catalog. Upload Excel.';
-        }
-    });
-
-    // Scan logic
-    const scanBtn = document.getElementById('triggerScanBtn');
-    const barcodeInput = document.getElementById('barcodeScanInput');
-    function performScan() {
-        const code = barcodeInput.value.trim();
-        if (!code) {
-            document.getElementById('scanStatusMsg').innerHTML = '<span class="text-warning"><i class="bi bi-info-circle"></i> Enter or scan GTIN</span>';
-            return;
-        }
-        const product = lookupProductByGTIN(code);
-        displayScanResultOnHorizontal(product, code);
-        if (!product && activeProducts.length === 0) {
-            document.getElementById('scanStatusMsg').innerHTML = '<span class="text-danger">No catalog loaded. Please load Excel file first.</span>';
-        }
-    }
-    scanBtn.addEventListener('click', performScan);
-    barcodeInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') performScan(); });
-    document.getElementById('focusScanBtn').addEventListener('click', () => barcodeInput.focus());
-
-    // Fuzzy search
-    const fuzzySearchTrigger = document.getElementById('fuzzySearchTrigger');
-    const fuzzySearchInput = document.getElementById('fuzzySearchInput');
-    function executeFuzzy() {
-        const query = fuzzySearchInput.value;
-        if (!query.trim()) { clearFuzzyDisplay(); return; }
-        if (!activeProducts.length) {
-            document.getElementById('fuzzyEmptyMsg').classList.remove('d-none');
-            document.getElementById('fuzzyEmptyMsg').innerText = "No product data available.";
-            document.getElementById('fuzzyResultsArea').style.display = 'none';
-            return;
-        }
-        rebuildFuseIndex();
-        const matches = performFuzzySearch(query);
-        if (matches.length) renderFuzzyResults(matches);
-        else {
-            document.getElementById('fuzzyResultsArea').style.display = 'none';
-            document.getElementById('fuzzyEmptyMsg').classList.remove('d-none');
-            document.getElementById('fuzzyEmptyMsg').innerHTML = "No close matches found";
-        }
-    }
-    fuzzySearchTrigger.addEventListener('click', executeFuzzy);
-    fuzzySearchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') executeFuzzy(); });
-    // blur or input clear
-    fuzzySearchInput.addEventListener('input', (e) => { if (e.target.value === "") clearFuzzyDisplay(); });
-
-    function escapeHtml(str) { if(!str) return ''; return String(str).replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;});}
-</script>
+        })();
+    </script>
 </body>
 </html>
-```
