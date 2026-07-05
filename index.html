@@ -1,744 +1,1027 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.5" />
-    <title>XanaLife Branch Sales</title>
-    <!-- Bootstrap 5 + Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js">
-    </script>
-    <!-- SheetJS (XLSX export) -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js">
-    </script>
-    <style>
-        body {
-            background: #f8fafc;
-        }
-        .card {
-            border: none;
-            border-radius: 1rem;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.02);
-            transition: transform 0.15s ease;
-        }
-        .card:hover {
-            transform: translateY(-2px);
-        }
-        .card-header {
-            background: white;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-            font-weight: 600;
-            padding: 1rem 1.25rem;
-        }
-        .stat-card .stat-icon {
-            font-size: 2rem;
-            opacity: 0.6;
-        }
-        .table thead th {
-            background: #1e293b;
-            color: white;
-            font-weight: 500;
-            border: none;
-            white-space: nowrap;
-        }
-        .table tbody tr:hover {
-            background-color: rgba(30, 41, 59, 0.03);
-        }
-        .btn-outline-secondary {
-            border-color: #dbe0e6;
-        }
-        .btn-outline-secondary:hover {
-            background: #f1f4f8;
-            border-color: #c0c8d2;
-        }
-        .filter-bar {
-            background: white;
-            border-radius: 1.5rem;
-            padding: 1.25rem 1.5rem;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.02);
-        }
-        h2 {
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            color: #0b1a2b;
-        }
-        .text-muted-light {
-            color: #6c7a8d;
-        }
-        #salesTable td {
-            vertical-align: middle;
-        }
-        .chart-container {
-            position: relative;
-            height: 220px;
-        }
-        .loading-spinner {
-            display: inline-block;
-            width: 2rem;
-            height: 2rem;
-            border: 0.25rem solid #e9ecef;
-            border-top-color: #1e293b;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-        @media (max-width: 768px) {
-            .filter-bar {
-                border-radius: 1rem;
-                padding: 1rem;
-            }
-            .stat-card .stat-icon {
-                font-size: 1.6rem;
-            }
-        }
-        .demo-badge {
-            font-size: 0.7rem;
-            background: #f59e0b;
-            color: white;
-            padding: 0.2rem 0.6rem;
-            border-radius: 20px;
-            margin-left: 0.5rem;
-        }
-        .status-badge {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-        }
-        .status-badge.loading {
-            background: #fef3c7;
-            color: #92400e;
-        }
-        .status-badge.success {
-            background: #d1fae5;
-            color: #065f46;
-        }
-        .status-badge.error {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.5" />
+  <title>XanaLife · Branch Sales</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <style>
+    :root{
+      --bg:#EEF1F7;
+      --bg-soft:#E6EAF3;
+      --surface:#FFFFFF;
+      --surface-2:#F7F9FC;
+      --ink:#0B1220;
+      --ink-soft:#5B6478;
+      --ink-faint:#8892A6;
+      --border:#E3E8F1;
+      --border-strong:#D3DAE8;
+      --sidebar-1:#0A0F1F;
+      --sidebar-2:#121B33;
+      --accent:#5B6EF5;
+      --accent-ink:#3846C4;
+      --accent-soft:#EAEBFE;
+      --good:#16B981;
+      --good-soft:#D9F7EA;
+      --warn:#F5A524;
+      --warn-soft:#FEF1D8;
+      --bad:#F0454A;
+      --bad-soft:#FCE1E2;
+      --ring-track:#E7EAF3;
+      --radius-lg:20px;
+      --radius-md:14px;
+      --radius-sm:10px;
+      --shadow-sm:0 1px 2px rgba(15,23,42,0.04), 0 1px 6px rgba(15,23,42,0.04);
+      --shadow-md:0 6px 24px rgba(15,23,42,0.07);
+      --shadow-lg:0 16px 48px rgba(15,23,42,0.14);
+      --font-display:'Plus Jakarta Sans', sans-serif;
+      --font-body:'Inter', -apple-system, sans-serif;
+      --font-mono:'JetBrains Mono', monospace;
+      --sidebar-width:272px;
+    }
+    body.theme-dark{
+      --bg:#0A0E1A;
+      --bg-soft:#0D1220;
+      --surface:#131A2C;
+      --surface-2:#0F1526;
+      --ink:#EAEEFB;
+      --ink-soft:#9AA3BC;
+      --ink-faint:#6B7492;
+      --border:#232C44;
+      --border-strong:#2E3852;
+      --sidebar-1:#060810;
+      --sidebar-2:#0A0F1D;
+      --accent-soft:#1C2050;
+      --good-soft:#0E2A26;
+      --warn-soft:#2E2410;
+      --bad-soft:#2E1418;
+      --ring-track:#232C44;
+      --shadow-sm:0 1px 2px rgba(0,0,0,0.3);
+      --shadow-md:0 6px 24px rgba(0,0,0,0.35);
+      --shadow-lg:0 16px 48px rgba(0,0,0,0.5);
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{ background:var(--bg); font-family:var(--font-body); color:var(--ink); display:flex; min-height:100vh; transition:background .25s, color .25s; }
+    ::selection{ background:var(--accent); color:#fff; }
+    .sidebar{ position:fixed; top:0; left:0; width:var(--sidebar-width); height:100vh; background:linear-gradient(185deg, var(--sidebar-2), var(--sidebar-1)); color:#B9C2DB; padding:1.6rem 0 1.2rem; overflow-y:auto; z-index:1050; transition:transform .3s cubic-bezier(.4,0,.2,1); box-shadow:4px 0 32px rgba(0,0,0,0.25); display:flex; flex-direction:column; }
+    .sidebar .brand{ font-family:var(--font-display); font-size:1.28rem; font-weight:800; padding:0 1.6rem 1.4rem; display:flex; align-items:center; gap:12px; color:#fff; border-bottom:1px solid rgba(255,255,255,.06); }
+    .sidebar .brand .mark{ width:38px; height:38px; border-radius:11px; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#6E7CF7,#8B5CF6); box-shadow:0 6px 18px rgba(110,124,247,.45); font-size:1.1rem; color:#fff; flex:none; }
+    .sidebar .brand .name-grad{ background:linear-gradient(135deg,#9DB0FF,#C9B6FF); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .sidebar .nav-label{ font-size:.66rem; text-transform:uppercase; letter-spacing:1.2px; color:#4C567A; font-weight:700; padding:1.3rem 1.6rem .5rem; }
+    .sidebar .nav-item{ padding:.7rem 1.6rem; cursor:pointer; display:flex; align-items:center; gap:13px; color:#9AA3C2; font-weight:600; font-size:.87rem; border-left:3px solid transparent; transition:all .18s; }
+    .sidebar .nav-item:hover{ background:rgba(255,255,255,.045); color:#F1F4FF; border-left-color:#3C4670; }
+    .sidebar .nav-item.active{ background:rgba(91,110,245,.16); color:#fff; border-left-color:var(--accent); }
+    .sidebar .nav-item{ position:relative; }
+    .sidebar .nav-item i{ font-size:1.1rem; width:22px; text-align:center; color:#5C6690; }
+    .sidebar .nav-item.active i{ color:#B4BFFF; }
+    .sidebar .nav-divider{ height:1px; background:rgba(255,255,255,.05); margin:.5rem 1.6rem; }
+    .sidebar-footer{ margin-top:auto; padding:1rem 1.6rem 0; }
+    .theme-toggle-btn{ width:100%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); color:#C6CEE8; border-radius:12px; padding:.55rem .9rem; font-size:.8rem; font-weight:600; display:flex; align-items:center; justify-content:space-between; }
+    .theme-toggle-btn:hover{ background:rgba(255,255,255,.09); }
+    .version-tag{ font-size:.68rem; color:#4C567A; padding:.9rem 1.6rem 0; }
+    .main-content{ margin-left:var(--sidebar-width); flex:1; padding:1.6rem 2.1rem 3rem; min-height:100vh; width:calc(100% - var(--sidebar-width)); }
+    .sidebar-toggle{ display:none; background:var(--sidebar-1); color:#fff; border:none; padding:.55rem 1.1rem; border-radius:11px; font-size:1.05rem; margin-bottom:1rem; }
+    .sidebar-overlay{ display:none; position:fixed; inset:0; background:rgba(5,8,16,.55); backdrop-filter:blur(3px); z-index:1040; }
+    .topbar-title{ font-family:var(--font-display); font-weight:800; font-size:1.5rem; color:var(--ink); letter-spacing:-.01em; }
+    .topbar-sub{ color:var(--ink-faint); font-size:.83rem; margin-top:2px; }
+    .pill{ font-size:.72rem; font-weight:600; padding:.32rem .8rem; border-radius:20px; display:inline-flex; align-items:center; gap:6px; }
+    .pill-dot{ width:6px; height:6px; border-radius:50%; }
+    .pill-neutral{ background:var(--surface-2); color:var(--ink-soft); border:1px solid var(--border); }
+    .pill-live{ background:var(--good-soft); color:var(--good); }
+    .pill-loading{ background:var(--surface-2); color:var(--ink-soft); border:1px solid var(--border); }
+    .pill-error{ background:var(--bad-soft); color:var(--bad); }
+    .icon-btn{ background:var(--surface); border:1px solid var(--border); color:var(--ink-soft); border-radius:12px; padding:.55rem .95rem; font-weight:600; font-size:.85rem; display:inline-flex; align-items:center; gap:8px; transition:all .15s; box-shadow:var(--shadow-sm); }
+    .icon-btn:hover{ border-color:var(--border-strong); transform:translateY(-1px); box-shadow:var(--shadow-md); color:var(--ink); }
+    .btn-solid{ background:var(--ink); color:#fff; border:none; border-radius:12px; padding:.55rem 1.3rem; font-weight:700; font-size:.85rem; display:inline-flex; align-items:center; gap:8px; transition:all .15s; box-shadow:var(--shadow-sm); }
+    .btn-solid:hover{ background:var(--accent-ink); transform:translateY(-1px); box-shadow:0 8px 20px rgba(56,70,196,.28); color:#fff; }
+    .filter-card{ background:var(--surface); border-radius:var(--radius-lg); padding:1.3rem 1.5rem; box-shadow:var(--shadow-sm); border:1px solid var(--border); }
+    .range-chip{ border:1px solid var(--border); background:var(--surface-2); color:var(--ink-soft); font-size:.78rem; font-weight:600; padding:.4rem 1rem; border-radius:20px; transition:all .15s; cursor:pointer; }
+    .range-chip:hover{ border-color:var(--border-strong); color:var(--ink); }
+    .range-chip.active{ background:var(--ink); color:#fff; border-color:var(--ink); }
+    .theme-dark .range-chip.active{ background:var(--accent); border-color:var(--accent); }
+    .filter-card .form-label{ font-size:.7rem; text-transform:uppercase; letter-spacing:.6px; color:var(--ink-faint); font-weight:700; margin-bottom:.3rem; }
+    .filter-card .form-control, .filter-card .form-select{ border-radius:11px; border:1px solid var(--border); background:var(--surface-2); font-size:.9rem; padding:.55rem .9rem; color:var(--ink); }
+    .filter-card .form-control:focus, .filter-card .form-select:focus{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); background:var(--surface); }
+    .stat-card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:1.15rem 1.35rem; box-shadow:var(--shadow-sm); transition:transform .18s, box-shadow .18s; }
+    .stat-card:hover{ transform:translateY(-2px); box-shadow:var(--shadow-md); }
+    .stat-icon{ font-size:1.15rem; width:42px; height:42px; display:flex; align-items:center; justify-content:center; border-radius:12px; flex:none; }
+    .stat-label{ font-size:.7rem; text-transform:uppercase; letter-spacing:.6px; color:var(--ink-faint); font-weight:700; }
+    .stat-number{ font-family:var(--font-display); font-size:1.68rem; font-weight:800; color:var(--ink); letter-spacing:-.02em; line-height:1.15; }
+    .stat-sub{ font-size:.72rem; color:var(--ink-faint); margin-top:2px; }
+    .stat-spark{ height:34px; margin-top:.4rem; }
+    .card-modern{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); }
+    .card-modern .card-header{ background:transparent; border-bottom:1px solid var(--border); font-weight:700; font-family:var(--font-display); padding:1.1rem 1.4rem; font-size:.95rem; color:var(--ink); }
+    .card-modern .card-body{ padding:1.4rem; }
+    .table-modern{ border-collapse:separate; border-spacing:0; color:var(--ink); }
+    .table-modern thead th{ background:var(--surface-2); color:var(--ink-soft); font-weight:700; font-size:.66rem; text-transform:uppercase; letter-spacing:.6px; border-bottom:1px solid var(--border); padding:.75rem 1rem; border-top:none; }
+    .table-modern tbody td{ padding:.75rem 1rem; border-bottom:1px solid var(--border); vertical-align:middle; font-size:.87rem; }
+    .table-modern tbody tr:hover{ background:var(--surface-2); }
+    .badge-achievement{ font-size:.68rem; padding:.28rem .8rem; border-radius:20px; font-weight:700; white-space:nowrap; }
+    .badge-achievement.above{ background:var(--good-soft); color:var(--good); }
+    .badge-achievement.on{ background:var(--warn-soft); color:var(--warn); }
+    .badge-achievement.below{ background:var(--bad-soft); color:var(--bad); }
+    .rank-medal{ font-size:1.25rem; width:30px; display:inline-block; text-align:center; }
+    .rank-number{ font-weight:700; font-size:.92rem; color:var(--ink-faint); font-family:var(--font-mono); }
+    .chart-container{ position:relative; height:250px; }
+    .computation-box{ background:var(--surface-2); border-radius:10px; padding:.55rem 1.1rem; font-size:.78rem; font-family:var(--font-mono); border:1px solid var(--border); margin-top:.2rem; color:var(--ink-soft); }
+    .computation-box .label{ color:var(--ink-faint); font-weight:600; }
+    .computation-box .value{ color:var(--ink); font-weight:700; }
+    .computation-box .highlight{ color:var(--accent); font-weight:700; }
+    .date-range-badge{ font-size:.68rem; background:var(--accent-soft); color:var(--accent-ink); padding:.15rem .7rem; border-radius:12px; font-weight:600; }
+    .branch-kpi-card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md); padding:.95rem 1.1rem; box-shadow:var(--shadow-sm); display:flex; gap:.9rem; align-items:center; transition:transform .15s, box-shadow .15s; }
+    .branch-kpi-card:hover{ transform:translateY(-2px); box-shadow:var(--shadow-md); }
+    .branch-kpi-card .ring{ flex:none; }
+    .branch-kpi-card .ring-text{ font-family:var(--font-mono); font-weight:700; fill:var(--ink); font-size:13px; }
+    .branch-kpi-card .branch-name{ font-weight:700; color:var(--ink); font-size:.86rem; }
+    .branch-kpi-card .kpi-mini{ display:flex; justify-content:space-between; font-size:.72rem; color:var(--ink-faint); }
+    .branch-kpi-card .kpi-mini b{ color:var(--ink); font-weight:700; font-family:var(--font-mono); font-size:.76rem; }
+    .filter-indicator{ background:var(--surface-2); border:1px solid var(--border); border-radius:20px; padding:.25rem .9rem; font-size:.72rem; color:var(--ink-soft); font-weight:600; }
+    .fade-in{ animation:fadeInUp .28s ease both; }
+    @keyframes fadeInUp{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:none;} }
+    .toast-stack{ position:fixed; bottom:1.4rem; right:1.4rem; z-index:2000; display:flex; flex-direction:column; gap:.6rem; }
+    .toast-item{ background:var(--ink); color:#fff; padding:.75rem 1.1rem; border-radius:12px; font-size:.85rem; font-weight:600; box-shadow:var(--shadow-lg); display:flex; align-items:center; gap:10px; min-width:220px; animation:toastIn .25s ease both; }
+    .toast-item.error{ background:var(--bad); }
+    .toast-item.success{ background:var(--good); }
+    @keyframes toastIn{ from{ opacity:0; transform:translateY(10px) scale(.96);} to{ opacity:1; transform:none;} }
+    @media (max-width:992px){ .sidebar{ transform:translateX(-100%); } .sidebar.open{ transform:translateX(0); } .sidebar-overlay.open{ display:block; } .main-content{ margin-left:0; width:100%; padding:1rem; } .sidebar-toggle{ display:inline-flex; align-items:center; gap:8px; } }
+    @media (max-width:768px){ .stat-number{ font-size:1.3rem; } .filter-card{ padding:1rem; } .card-modern .card-body{ padding:1rem; } }
+  </style>
 </head>
 <body>
-    <div class="container py-4 py-md-5">
-        <!-- header -->
-        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
-            <div>
-                <h2 class="mb-0">
-                    <i class="bi bi-bar-chart-fill me-2" style="color:#1e293b;"></i>
-                    XanaLife Branch Sales
-                    <span class="demo-badge" id="dataModeBadge">DEMO</span>
-                </h2>
-                <span class="badge bg-light text-secondary mt-1 px-3 py-2" id="statusBadge">
-                    <i class="bi bi-circle-fill me-1" style="color:#f59e0b;font-size:0.6rem;"></i>
-                    Loading...
-                </span>
-            </div>
-            <div class="d-flex gap-2 mt-2 mt-sm-0">
-                <button class="btn btn-outline-secondary rounded-pill px-4" id="exportExcelBtn">
-                    <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
-                </button>
-                <button class="btn btn-outline-secondary rounded-pill px-4" id="refreshBtn">
-                    <i class="bi bi-arrow-clockwise me-2"></i>Refresh
-                </button>
-            </div>
-        </div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<nav class="sidebar" id="sidebar">
+  <div class="brand"><div class="mark"><i class="bi bi-graph-up-arrow"></i></div><span>Xana<span class="name-grad">Life</span></span></div>
+  <div class="nav-label">Analytics</div>
+  <div class="nav-item active" data-view="overview"><i class="bi bi-grid-1x2-fill"></i> Overview</div>
+  <div class="nav-item" data-view="targets"><i class="bi bi-bullseye"></i> Targets</div>
+  <div class="nav-item" data-view="mom"><i class="bi bi-arrow-up-right-circle"></i> Month on Month</div>
+  <div class="nav-item" data-view="wow"><i class="bi bi-calendar-week"></i> Week on Week</div>
+  <div class="nav-divider"></div>
+  <div class="nav-item" data-view="ranking"><i class="bi bi-trophy"></i> Top / Bottom</div>
+  <div class="sidebar-footer">
+    <button class="theme-toggle-btn" id="themeToggle"><span><i class="bi bi-moon-stars me-2"></i>Dark mode</span><i class="bi bi-toggle-off" id="themeToggleIcon"></i></button>
+  </div>
+  <div class="version-tag"><i class="bi bi-info-circle"></i> v4.0 · Daily Targets</div>
+</nav>
 
-        <!-- Filters card -->
-        <div class="filter-bar mb-4">
-            <div class="row g-3 align-items-end">
-                <div class="col-md-3">
-                    <label class="form-label fw-semibold small text-uppercase text-secondary">Branch</label>
-                    <select id="branch" class="form-select form-select-lg rounded-pill border-0 bg-light">
-                        <option value="">All Branches</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-semibold small text-uppercase text-secondary">Start Date</label>
-                    <input type="date" id="start" class="form-control form-control-lg rounded-pill border-0 bg-light" />
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-semibold small text-uppercase text-secondary">End Date</label>
-                    <input type="date" id="end" class="form-control form-control-lg rounded-pill border-0 bg-light" />
-                </div>
-                <div class="col-md-3 d-grid">
-                    <button class="btn btn-dark rounded-pill py-2 fw-semibold" id="searchBtn" style="background:#1e293b; border-color:#1e293b;">
-                        <i class="bi bi-search me-2"></i>Apply filters
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- KPI cards -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-4">
-                <div class="card stat-card h-100">
-                    <div class="card-body d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="text-muted-light small text-uppercase fw-semibold">Total Sales</span>
-                            <h3 class="mb-0 fw-bold" id="totalSales">0</h3>
-                        </div>
-                        <div class="stat-icon text-success"><i class="bi bi-cash-stack"></i></div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card stat-card h-100">
-                    <div class="card-body d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="text-muted-light small text-uppercase fw-semibold">Customers</span>
-                            <h3 class="mb-0 fw-bold" id="customers">0</h3>
-                        </div>
-                        <div class="stat-icon text-primary"><i class="bi bi-people"></i></div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card stat-card h-100">
-                    <div class="card-body d-flex align-items-center justify-content-between">
-                        <div>
-                            <span class="text-muted-light small text-uppercase fw-semibold">Basket Value</span>
-                            <h3 class="mb-0 fw-bold" id="basketValue">0.00</h3>
-                        </div>
-                        <div class="stat-icon text-warning"><i class="bi bi-cart-check"></i></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Charts row -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-6">
-                <div class="card h-100">
-                    <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-                        <span>Sales by Branch</span>
-                        <span class="badge bg-light text-secondary">top 5</span>
-                    </div>
-                    <div class="card-body chart-container">
-                        <canvas id="branchChart"></canvas>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card h-100">
-                    <div class="card-header bg-transparent">Daily Sales Trend</div>
-                    <div class="card-body chart-container">
-                        <canvas id="trendChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Table -->
-        <div class="card">
-            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-table me-2"></i>Detailed Records</span>
-                <span class="badge bg-secondary bg-opacity-10 text-secondary" id="rowCount">0 rows</span>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0" id="dataTable">
-                        <thead>
-                            <tr>
-                                <th>DATE</th>
-                                <th>BRANCH</th>
-                                <th>CASH</th>
-                                <th>MPESA</th>
-                                <th>CREDIT CARD</th>
-                                <th>INVOICE</th>
-                                <th>TOTAL</th>
-                                <th>CUSTOMERS</th>
-                                <th>B/VALUE</th>
-                            </tr>
-                        </thead>
-                        <tbody id="salesTable">
-                            <tr>
-                                <td colspan="9" class="text-center py-4">
-                                    <div class="d-flex justify-content-center align-items-center gap-3">
-                                        <div class="loading-spinner"></div>
-                                        <span class="text-muted">Loading data…</span>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+<div class="main-content">
+  <button class="sidebar-toggle" id="sidebarToggle"><i class="bi bi-list"></i> Menu</button>
+  <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
+    <div>
+      <h2 class="topbar-title mb-0" id="pageTitle"><i class="bi bi-grid-1x2-fill me-2" style="color:var(--accent);"></i>Overview</h2>
+      <div class="d-flex align-items-center flex-wrap gap-2 mt-2">
+        <span class="pill pill-loading" id="statusBadge"><span class="pill-dot" style="background:#F5A524;"></span> Loading…</span>
+        <span class="pill pill-live" id="dataModeBadge"><i class="bi bi-database"></i> LIVE</span>
+        <span class="filter-indicator" id="filterIndicator">All dates</span>
+      </div>
     </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <button class="icon-btn" id="exportExcelBtn"><i class="bi bi-file-earmark-excel"></i>Export</button>
+      <button class="icon-btn" id="refreshBtn"><i class="bi bi-arrow-clockwise"></i>Refresh</button>
+    </div>
+  </div>
 
-    <script>
-        (function() {
-            // ------------------------------------------------------------
-            //  CONFIG & STATE
-            // ------------------------------------------------------------
-            const API = "https://script.google.com/macros/s/AKfycbyBZt6KqVPjU7boOunFBEAzHb8pPDLxbg8dizECxyUJMFa5bcElR0UVe1AcWvNpcIxo/exec";
-            let cachedData = null;
-            let filteredRows = [];
-            let usingDemoData = false;
-            let dataLoadAttempted = false;
+  <div class="filter-card mb-4">
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+      <span class="range-chip" data-range="today">Today</span>
+      <span class="range-chip" data-range="7d">Last 7 days</span>
+      <span class="range-chip active" data-range="month">This Month</span>
+      <span class="range-chip" data-range="all">All Time</span>
+      <button class="icon-btn ms-auto py-1 px-3" style="font-size:.78rem;" id="resetFiltersBtn"><i class="bi bi-x-circle"></i>Reset</button>
+    </div>
+    <div class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label">Branch</label>
+        <select id="branch" class="form-select"><option value="">All Branches</option></select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Start Date</label>
+        <input type="date" id="start" class="form-control" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">End Date</label>
+        <input type="date" id="end" class="form-control" />
+      </div>
+      <div class="col-md-3 d-grid">
+        <button class="btn-solid justify-content-center" id="searchBtn"><i class="bi bi-search"></i>Apply</button>
+      </div>
+    </div>
+  </div>
 
-            let branchChartInstance = null;
-            let trendChartInstance = null;
+  <div class="row g-3 mb-4" id="kpiRow">
+    <div class="col-md-3 col-6"><div class="stat-card"><div class="d-flex align-items-start justify-content-between"><div><div class="stat-label">Total Sales</div><div class="stat-number" id="totalSales">0</div><div class="stat-sub" id="totalSalesSub">filtered</div></div><div class="stat-icon" style="background:var(--accent-soft);color:var(--accent);"><i class="bi bi-cash-stack"></i></div></div><div class="stat-spark"><canvas id="sparkSales"></canvas></div></div></div>
+    <div class="col-md-3 col-6"><div class="stat-card"><div class="d-flex align-items-start justify-content-between"><div><div class="stat-label">Customers</div><div class="stat-number" id="customers">0</div><div class="stat-sub" id="customersSub">filtered</div></div><div class="stat-icon" style="background:var(--good-soft);color:var(--good);"><i class="bi bi-people"></i></div></div><div class="stat-spark"><canvas id="sparkCustomers"></canvas></div></div></div>
+    <div class="col-md-3 col-6"><div class="stat-card"><div class="d-flex align-items-start justify-content-between"><div><div class="stat-label">Basket Value</div><div class="stat-number" id="basketValue">0.00</div><div class="stat-sub" id="basketSub">avg per customer</div></div><div class="stat-icon" style="background:var(--warn-soft);color:var(--warn);"><i class="bi bi-cart-check"></i></div></div></div></div>
+    <div class="col-md-3 col-6"><div class="stat-card"><div class="d-flex align-items-start justify-content-between"><div><div class="stat-label">Avg Achievement</div><div class="stat-number" id="avgAchievement">0%</div><div class="stat-sub" id="avgAchievementSub">target branches</div></div><div class="stat-icon" style="background:var(--bad-soft);color:var(--bad);"><i class="bi bi-bullseye"></i></div></div></div></div>
+  </div>
 
-            const branchSelect = document.getElementById('branch');
-            const startInput = document.getElementById('start');
-            const endInput = document.getElementById('end');
-            const salesTable = document.getElementById('salesTable');
-            const totalSalesEl = document.getElementById('totalSales');
-            const customersEl = document.getElementById('customers');
-            const basketEl = document.getElementById('basketValue');
-            const rowCountEl = document.getElementById('rowCount');
-            const exportBtn = document.getElementById('exportExcelBtn');
-            const refreshBtn = document.getElementById('refreshBtn');
-            const statusBadge = document.getElementById('statusBadge');
-            const dataModeBadge = document.getElementById('dataModeBadge');
+  <div class="row g-3 mb-4" id="branchKpiRow"></div>
+  <div id="dynamicPanel"></div>
+</div>
+<div class="toast-stack" id="toastStack"></div>
 
-            // ------------------------------------------------------------
-            //  DEMO DATA (realistic sample)
-            // ------------------------------------------------------------
-            function generateDemoData() {
-                const branches = ['Nairobi CBD', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Thika', 'Malindi'];
-                const data = [];
-                const today = new Date();
-                for (let i = 90; i >= 0; i--) {
-                    const d = new Date(today);
-                    d.setDate(d.getDate() - i);
-                    const dateStr = d.toISOString().split('T')[0];
-                    const branch = branches[Math.floor(Math.random() * branches.length)];
-                    const cash = Math.round((Math.random() * 150000 + 20000) / 100) * 100;
-                    const mpesa = Math.round((Math.random() * 200000 + 30000) / 100) * 100;
-                    const card = Math.round((Math.random() * 100000 + 10000) / 100) * 100;
-                    const invoice = Math.round((Math.random() * 80000 + 5000) / 100) * 100;
-                    const total = cash + mpesa + card + invoice;
-                    const customers = Math.floor(Math.random() * 80 + 5);
-                    data.push([dateStr, branch, cash, mpesa, card, invoice, total, customers]);
-                }
-                return data;
-            }
+<script>
+(function(){
+  // ----- config -----
+  const API = "https://script.google.com/macros/s/AKfycbyBZt6KqVPjU7boOunFBEAzHb8pPDLxbg8dizECxyUJMFa5bcElR0UVe1AcWvNpcIxo/exec";
+  const DAILY_TARGETS = { 'KATANI': 50000, 'SYOKIMAU': 450000, 'RUIRU': 300000 };
+  const CURRENT_MONTH = '2026-07';
+  const DAYS_IN_MONTH = 31;
 
-            // ------------------------------------------------------------
-            //  HELPERS
-            // ------------------------------------------------------------
-            function isHeaderRow(row) {
-                if (!row || !Array.isArray(row) || row.length === 0) return false;
-                const first = String(row[0] || '').toLowerCase();
-                return first.includes('date') || first.includes('branch') || first.includes('total') || first.includes(
-                'sales');
-            }
+  let cachedData = null, filteredRows = [], usingDemoData = false, currentView = 'overview';
+  let chartMain = null, sparkSalesChart = null, sparkCustomersChart = null;
 
-            function formatDate(dateValue) {
-                if (!dateValue) return '';
-                if (typeof dateValue === 'string' && (dateValue.toLowerCase().includes('date') || dateValue.toLowerCase()
-                        .includes('total'))) return dateValue;
-                let d = new Date(dateValue);
-                if (isNaN(d.getTime())) {
-                    const m = String(dateValue).match(/(\d{4})-(\d{2})-(\d{2})/);
-                    if (m) return `${m[3]}-${m[2]}-${m[1].slice(-2)}`;
-                    return String(dateValue);
-                }
-                const dd = String(d.getDate()).padStart(2, '0');
-                const mm = String(d.getMonth() + 1).padStart(2, '0');
-                const yy = String(d.getFullYear()).slice(-2);
-                return `${dd}-${mm}-${yy}`;
-            }
+  const branchSelect = document.getElementById('branch');
+  const startInput = document.getElementById('start');
+  const endInput = document.getElementById('end');
+  const totalSalesEl = document.getElementById('totalSales');
+  const customersEl = document.getElementById('customers');
+  const basketEl = document.getElementById('basketValue');
+  const avgAchievementEl = document.getElementById('avgAchievement');
+  const totalSalesSub = document.getElementById('totalSalesSub');
+  const customersSub = document.getElementById('customersSub');
+  const basketSub = document.getElementById('basketSub');
+  const avgAchievementSub = document.getElementById('avgAchievementSub');
+  const exportBtn = document.getElementById('exportExcelBtn');
+  const refreshBtn = document.getElementById('refreshBtn');
+  const statusBadge = document.getElementById('statusBadge');
+  const dataModeBadge = document.getElementById('dataModeBadge');
+  const pageTitle = document.getElementById('pageTitle');
+  const dynamicPanel = document.getElementById('dynamicPanel');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const branchKpiRow = document.getElementById('branchKpiRow');
+  const filterIndicator = document.getElementById('filterIndicator');
+  const toastStack = document.getElementById('toastStack');
+  const themeToggle = document.getElementById('themeToggle');
+  const themeToggleIcon = document.getElementById('themeToggleIcon');
 
-            function extractDateString(dateValue) {
-                if (!dateValue) return null;
-                if (typeof dateValue === 'string' && (dateValue.toLowerCase().includes('date') || dateValue.toLowerCase()
-                        .includes('total'))) return null;
-                let d = new Date(dateValue);
-                if (isNaN(d.getTime())) {
-                    const m = String(dateValue).match(/(\d{4})-(\d{2})-(\d{2})/);
-                    if (m) return m[0];
-                    return null;
-                }
-                const y = d.getFullYear();
-                const mo = String(d.getMonth() + 1).padStart(2, '0');
-                const day = String(d.getDate()).padStart(2, '0');
-                return `${y}-${mo}-${day}`;
-            }
+  function showToast(msg, type){ type=type||'default'; const el=document.createElement('div'); el.className='toast-item'+(type==='default'?'':' '+type); const icon=type==='error'?'bi-exclamation-circle':type==='success'?'bi-check-circle':'bi-info-circle'; el.innerHTML=`<i class="bi ${icon}"></i><span>${msg}</span>`; toastStack.appendChild(el); setTimeout(()=>{ el.style.transition='opacity .25s, transform .25s'; el.style.opacity='0'; el.style.transform='translateY(8px)'; setTimeout(()=>el.remove(),260); },3200); }
+  function setTheme(dark){ document.body.classList.toggle('theme-dark', dark); themeToggleIcon.className = dark ? 'bi bi-toggle-on' : 'bi bi-toggle-off'; }
+  themeToggle.addEventListener('click', ()=> setTheme(!document.body.classList.contains('theme-dark')));
 
-            function getUniqueBranches(rows) {
-                const set = new Set();
-                rows.forEach(row => {
-                    const b = row[1] ? String(row[1]).trim() : '';
-                    if (b && !b.toLowerCase().includes('branch')) set.add(b);
-                });
-                return Array.from(set).sort();
-            }
+  // ============================================================
+  // FINAL DATE HANDLING SOLUTION - Handles dd-mm-yy format properly
+  // ============================================================
+  
+  function convertToYYYYMMDD(dateInput) {
+    if (!dateInput) return null;
+    
+    // If it's already a Date object
+    if (dateInput instanceof Date) {
+      const year = dateInput.getFullYear();
+      const month = String(dateInput.getMonth() + 1).padStart(2, '0');
+      const day = String(dateInput.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    
+    const dateStr = String(dateInput).trim();
+    
+    // Check for dd-mm-yy or dd/mm/yy format (your data format)
+    let match = dateStr.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+    if (match) {
+      let day = parseInt(match[1]);
+      let month = parseInt(match[2]);
+      let year = parseInt(match[3]);
+      
+      // Convert 2-digit year to 4-digit
+      if (year < 100) {
+        year = year + 2000;
+      }
+      
+      // Validate date
+      const testDate = new Date(year, month - 1, day);
+      if (testDate.getFullYear() === year && 
+          testDate.getMonth() === month - 1 && 
+          testDate.getDate() === day) {
+        return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      }
+    }
+    
+    // Check for YYYY-MM-DD format
+    match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (match) {
+      const year = parseInt(match[1]);
+      const month = parseInt(match[2]);
+      const day = parseInt(match[3]);
+      const testDate = new Date(year, month - 1, day);
+      if (testDate.getFullYear() === year && 
+          testDate.getMonth() === month - 1 && 
+          testDate.getDate() === day) {
+        return dateStr;
+      }
+    }
+    
+    // Try parsing as date
+    try {
+      const d = new Date(dateStr);
+      if (!isNaN(d.getTime())) {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+    } catch(e) {}
+    
+    return null;
+  }
 
-            function updateBranchFilter(rows) {
-                const current = branchSelect.value;
-                const branches = getUniqueBranches(rows);
-                branchSelect.innerHTML = '<option value="">All Branches</option>';
-                branches.forEach(b => {
-                    const opt = document.createElement('option');
-                    opt.value = b;
-                    opt.textContent = b;
-                    branchSelect.appendChild(opt);
-                });
-                if (current && branches.includes(current)) branchSelect.value = current;
-            }
+  function compareDates(date1, date2) {
+    const d1 = convertToYYYYMMDD(date1);
+    const d2 = convertToYYYYMMDD(date2);
+    if (!d1 || !d2) return 0;
+    if (d1 < d2) return -1;
+    if (d1 > d2) return 1;
+    return 0;
+  }
 
-            function setStatus(type, message) {
-                statusBadge.innerHTML = '';
-                const icon = document.createElement('i');
-                icon.className = 'bi bi-circle-fill me-1';
-                icon.style.fontSize = '0.6rem';
-                if (type === 'loading') {
-                    icon.style.color = '#f59e0b';
-                    statusBadge.className = 'badge bg-light text-secondary mt-1 px-3 py-2 status-badge loading';
-                    statusBadge.appendChild(icon);
-                    statusBadge.appendChild(document.createTextNode(' ' + message));
-                } else if (type === 'success') {
-                    icon.style.color = '#10b981';
-                    statusBadge.className = 'badge bg-light text-secondary mt-1 px-3 py-2 status-badge success';
-                    statusBadge.appendChild(icon);
-                    statusBadge.appendChild(document.createTextNode(' ' + message));
-                } else if (type === 'error') {
-                    icon.style.color = '#ef4444';
-                    statusBadge.className = 'badge bg-light text-secondary mt-1 px-3 py-2 status-badge error';
-                    statusBadge.appendChild(icon);
-                    statusBadge.appendChild(document.createTextNode(' ' + message));
-                }
-            }
+  function isDateInRange(dateStr, startStr, endStr) {
+    const date = convertToYYYYMMDD(dateStr);
+    if (!date) return true;
+    
+    // If no start and end, include all
+    if (!startStr && !endStr) return true;
+    
+    // Check start (inclusive)
+    if (startStr) {
+      const start = convertToYYYYMMDD(startStr);
+      if (start && date < start) return false;
+    }
+    
+    // Check end (inclusive)
+    if (endStr) {
+      const end = convertToYYYYMMDD(endStr);
+      if (end && date > end) return false;
+    }
+    
+    return true;
+  }
 
-            // ------------------------------------------------------------
-            //  LOAD & FILTER
-            // ------------------------------------------------------------
-            async function loadSales(forceRefresh = false) {
-                try {
-                    setStatus('loading', 'Loading data...');
-                    dataModeBadge.textContent = 'LOADING';
-                    dataModeBadge.style.background = '#f59e0b';
+  function extractDateString(v){
+    if(!v) return null;
+    const converted = convertToYYYYMMDD(v);
+    return converted;
+  }
 
-                    // Show loading state
-                    salesTable.innerHTML = `<tr><td colspan="9" class="text-center py-4">
-                        <div class="d-flex justify-content-center align-items-center gap-3">
-                            <div class="loading-spinner"></div>
-                            <span class="text-muted">Loading data…</span>
-                        </div>
-                    </td></tr>`;
+  function formatDateForDisplay(v){
+    if(!v) return '';
+    const converted = convertToYYYYMMDD(v);
+    if (!converted) return String(v);
+    const parts = converted.split('-');
+    return `${parts[2]}-${parts[1]}-${parts[0].slice(-2)}`;
+  }
 
-                    // Try to fetch real data
-                    let dataLoaded = false;
-                    if (!cachedData || forceRefresh) {
-                        try {
-                            const resp = await fetch(API, {
-                                method: 'GET',
-                                mode: 'cors',
-                                headers: {
-                                    'Accept': 'application/json'
-                                }
-                            });
+  function getTodayStr(){
+    const d = new Date();
+    return d.toISOString().split('T')[0];
+  }
 
-                            if (resp.ok) {
-                                let raw = await resp.json();
-                                if (!Array.isArray(raw)) {
-                                    if (raw.data && Array.isArray(raw.data)) raw = raw.data;
-                                    else if (raw.values && Array.isArray(raw.values)) raw = raw.values;
-                                    else throw new Error('Invalid data format');
-                                }
-                                if (raw && raw.length > 0) {
-                                    cachedData = raw;
-                                    dataLoaded = true;
-                                    usingDemoData = false;
-                                    dataModeBadge.textContent = 'LIVE';
-                                    dataModeBadge.style.background = '#10b981';
-                                    setStatus('success', 'Live data loaded');
-                                }
-                            }
-                        } catch (e) {
-                            console.warn('Failed to load live data, using demo:', e);
-                        }
-                    } else if (cachedData) {
-                        dataLoaded = true;
-                    }
+  function getMonthStart(){
+    return '2026-07-01';
+  }
 
-                    // If no data loaded, use demo data
-                    if (!dataLoaded) {
-                        if (!cachedData || forceRefresh) {
-                            cachedData = generateDemoData();
-                        }
-                        usingDemoData = true;
-                        dataModeBadge.textContent = 'DEMO';
-                        dataModeBadge.style.background = '#f59e0b';
-                        setStatus('success', 'Demo data (live unavailable)');
-                    }
+  function getMonthEnd(){
+    return '2026-07-31';
+  }
 
-                    let data = cachedData;
-                    if (!data || data.length === 0) {
-                        renderEmpty('No data available');
-                        updateCharts([]);
-                        updateKPIs(0, 0, 0);
-                        return;
-                    }
+  function getWeekAgo(){
+    const d = new Date();
+    d.setDate(d.getDate() - 6);
+    return d.toISOString().split('T')[0];
+  }
 
-                    let rows = data;
-                    if (rows.length > 0 && isHeaderRow(rows[0])) rows = rows.slice(1);
-                    if (rows.length === 0) {
-                        renderEmpty('No data rows');
-                        updateCharts([]);
-                        updateKPIs(0, 0, 0);
-                        return;
-                    }
+  function getWeekOfYear(ds){ 
+    const d = new Date(ds + 'T00:00:00'); 
+    const s = new Date(d.getFullYear(),0,1); 
+    const diff = (d - s + (s.getTimezoneOffset() - d.getTimezoneOffset()) * 60000) / 86400000; 
+    return Math.ceil((diff + s.getDay() + 1) / 7); 
+  }
+  
+  function getWeekDateRange(wk, yr){ 
+    const s = new Date(yr,0,1); 
+    const days = (wk-1)*7 - s.getDay() + 1; 
+    const st = new Date(yr,0,days); 
+    const en = new Date(st); 
+    en.setDate(en.getDate() + 6); 
+    const f = d => String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear(); 
+    return f(st) + ' - ' + f(en); 
+  }
+  
+  function getMonthDateRange(ms){ 
+    const [y,m] = ms.split('-').map(Number); 
+    const st = new Date(y,m-1,1); 
+    const en = new Date(y,m,0); 
+    const f = d => String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear(); 
+    return f(st) + ' - ' + f(en); 
+  }
+  
+  function getUniqueBranches(rows){ 
+    const s = new Set(); 
+    rows.forEach(r => { 
+      const b = String(r[1] || '').trim().toUpperCase(); 
+      if(b && !b.toLowerCase().includes('branch')) s.add(b); 
+    }); 
+    return Array.from(s).sort(); 
+  }
+  
+  function updateBranchFilter(rows){ 
+    const cur = branchSelect.value; 
+    const branches = getUniqueBranches(rows); 
+    branchSelect.innerHTML = '<option value="">All Branches</option>'; 
+    branches.forEach(b => { 
+      const opt = document.createElement('option'); 
+      opt.value = b; 
+      opt.textContent = b; 
+      branchSelect.appendChild(opt); 
+    }); 
+    if(cur && branches.includes(cur)) branchSelect.value = cur; 
+  }
+  
+  function setStatus(type, msg){ 
+    const colors = {loading:'#F5A524', success:'#16B981', error:'#F0454A'}; 
+    const cls = {loading:'pill-loading', success:'pill-live', error:'pill-error'}; 
+    statusBadge.className = 'pill ' + (type === 'success' ? 'pill-neutral' : (cls[type] || 'pill-neutral')); 
+    statusBadge.innerHTML = `<span class="pill-dot" style="background:${colors[type] || '#8892A6'};"></span> ${msg}`; 
+  }
+  
+  function normalizeBranch(n){ 
+    if(!n) return ''; 
+    const u = n.toUpperCase().trim(); 
+    for(const k of Object.keys(DAILY_TARGETS)) if(u.includes(k)) return k; 
+    return u; 
+  }
+  
+  function getMonthlyTarget(b){ 
+    const d = DAILY_TARGETS[b]; 
+    return d ? d * DAYS_IN_MONTH : 0; 
+  }
+  
+  function getDateRangeLabel(rows){ 
+    if(!rows || !rows.length) return 'No data'; 
+    const dates = rows.map(r => extractDateString(r[0])).filter(d => d).sort(); 
+    if(!dates.length) return 'No dates'; 
+    const start = formatDateForDisplay(dates[0]);
+    const end = formatDateForDisplay(dates[dates.length - 1]);
+    return start + ' → ' + end; 
+  }
+  
+  function countDistinctDays(rows){ 
+    const s = new Set(); 
+    rows.forEach(r => { 
+      const d = extractDateString(r[0]); 
+      if(d) s.add(d); 
+    }); 
+    return s.size; 
+  }
 
-                    updateBranchFilter(rows);
+  function progressRing(pct, opts={}){ 
+    const size = opts.size || 58, stroke = opts.stroke || 7, radius = (size - stroke) / 2, circ = 2 * Math.PI * radius, clamped = Math.max(0, Math.min(pct || 0, 100)), offset = circ - (clamped / 100) * circ; 
+    const color = !isFinite(pct) ? 'var(--ink-faint)' : pct >= 100 ? 'var(--good)' : pct >= 80 ? 'var(--accent)' : pct >= 60 ? 'var(--warn)' : 'var(--bad)'; 
+    const label = isFinite(pct) ? Math.round(pct) + '%' : '—'; 
+    return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="ring"><circle cx="${size/2}" cy="${size/2}" r="${radius}" stroke="var(--ring-track)" stroke-width="${stroke}" fill="none"/><circle cx="${size/2}" cy="${size/2}" r="${radius}" stroke="${color}" stroke-width="${stroke}" fill="none" stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${offset}" transform="rotate(-90 ${size/2} ${size/2})" style="transition:stroke-dashoffset .5s;"/><text x="50%" y="50%" text-anchor="middle" dominant-baseline="central" class="ring-text">${label}</text></svg>`; 
+  }
 
-                    const branch = branchSelect.value;
-                    const start = startInput.value;
-                    const end = endInput.value;
+  // ----- fetch live data -----
+  async function loadData(forceRefresh){
+    try{
+      setStatus('loading','Loading…');
+      if(!cachedData || forceRefresh){
+        const resp = await fetch(API, { method:'GET', mode:'cors', headers:{'Accept':'application/json'} });
+        if(!resp.ok) throw new Error('Network response was not ok');
+        let raw = await resp.json();
+        if(!Array.isArray(raw)){
+          if(raw.data && Array.isArray(raw.data)) raw = raw.data;
+          else if(raw.values && Array.isArray(raw.values)) raw = raw.values;
+          else throw new Error('Invalid data format');
+        }
+        if(!raw || raw.length === 0) throw new Error('Empty data');
+        cachedData = raw;
+        usingDemoData = false;
+        dataModeBadge.className = 'pill pill-live';
+        dataModeBadge.innerHTML = '<i class="bi bi-database"></i> LIVE';
+        setStatus('success','Live data');
+      }
+    } catch(err){
+      console.error('Load error:', err);
+      setStatus('error','Failed to load data');
+      showToast('Could not load data from server. Please check connection or API endpoint.','error');
+      cachedData = null;
+      usingDemoData = false;
+      dataModeBadge.className = 'pill pill-error';
+      dataModeBadge.innerHTML = '<i class="bi bi-exclamation-triangle"></i> ERROR';
+      dynamicPanel.innerHTML = `<div class="card-modern fade-in"><div class="card-body text-center text-muted py-5"><i class="bi bi-wifi-off display-4 d-block mb-3"></i>No data available<br><span class="small">Check API endpoint or network</span></div></div>`;
+      totalSalesEl.textContent = '0'; customersEl.textContent = '0'; basketEl.textContent = '0.00'; avgAchievementEl.textContent = '0%';
+      branchKpiRow.innerHTML = ''; filterIndicator.textContent = 'No data';
+      return;
+    }
+  }
 
-                    let filtered = rows;
-                    if (branch) {
-                        filtered = filtered.filter(r => String(r[1] || '').trim() === branch);
-                    }
-                    if (start || end) {
-                        filtered = filtered.filter(r => {
-                            const ds = extractDateString(r[0]);
-                            if (!ds) return true;
-                            if (start && ds < start) return false;
-                            if (end && ds > end) return false;
-                            return true;
-                        });
-                    }
+  // ----- FIXED: Proper inclusive date range filtering with dd-mm-yy support -----
+  function getFilteredData(){
+    if(!cachedData) return [];
+    let rows = cachedData;
+    if(rows.length && String(rows[0][0] || '').toLowerCase().includes('date')) rows = rows.slice(1);
+    if(!rows.length) return [];
+    const branch = branchSelect.value;
+    const startVal = startInput.value;
+    const endVal = endInput.value;
+    
+    let filtered = rows;
+    if(branch) filtered = filtered.filter(r => String(r[1] || '').trim().toUpperCase() === branch);
+    
+    // Apply date range filter with inclusive logic
+    if(startVal || endVal) {
+      filtered = filtered.filter(r => {
+        const dateStr = r[0];
+        if (!dateStr) return true;
+        // Check if date is in range (inclusive)
+        return isDateInRange(dateStr, startVal, endVal);
+      });
+    }
+    
+    return filtered;
+  }
 
-                    filteredRows = filtered;
+  function calculateTargetStats(rows){
+    const monthRows = rows.filter(r => {
+      const ds = extractDateString(r[0]);
+      return ds && ds.startsWith(CURRENT_MONTH);
+    });
+    const branchMap = new Map();
+    monthRows.forEach(r => {
+      const raw = String(r[1] || '').trim().toUpperCase();
+      const key = normalizeBranch(raw);
+      if(!key) return;
+      const total = Number(r[6] || 0), cust = Number(r[7] || 0);
+      if(!branchMap.has(key)) branchMap.set(key, {sales:0, customers:0, count:0, rawNames:new Set()});
+      const e = branchMap.get(key);
+      e.sales += total; e.customers += cust; e.count++; e.rawNames.add(raw);
+    });
+    const results = [];
+    let totalAchievement = 0, targetBranches = 0;
+    for(const [branch, data] of branchMap){
+      const monthlyTarget = getMonthlyTarget(branch);
+      const achievement = monthlyTarget > 0 ? (data.sales / monthlyTarget) * 100 : 0;
+      const status = achievement >= 100 ? 'above' : achievement >= 80 ? 'on' : achievement >= 60 ? 'below' : 'struggling';
+      const statusLabel = achievement >= 100 ? '✅ Above' : achievement >= 80 ? '⚠️ On' : achievement >= 60 ? '🔴 Below' : '🚨 Struggling';
+      if(monthlyTarget > 0){ totalAchievement += achievement; targetBranches++; }
+      results.push({
+        branch, displayName: Array.from(data.rawNames).join(', '),
+        dailyTarget: DAILY_TARGETS[branch] || 0, monthlyTarget, actual: data.sales,
+        customers: data.customers, achievement, status, statusLabel,
+        gap: monthlyTarget - data.sales,
+        avgBasket: data.customers > 0 ? data.sales / data.customers : 0,
+        transactions: data.count
+      });
+    }
+    results.sort((a,b) => b.achievement - a.achievement);
+    const avgAchievement = targetBranches > 0 ? totalAchievement / targetBranches : 0;
+    return { branches: results, avgAchievement };
+  }
 
-                    if (filtered.length === 0) {
-                        renderEmpty('No data matches your filters');
-                        updateCharts([]);
-                        updateKPIs(0, 0, 0);
-                        return;
-                    }
+  function calculateMoM(rows){
+    const monthMap = new Map();
+    rows.forEach(r => {
+      const ds = extractDateString(r[0]);
+      if(!ds) return;
+      const month = ds.substring(0,7);
+      const branch = String(r[1] || '').trim().toUpperCase();
+      const key = branch + '|' + month;
+      const total = Number(r[6] || 0);
+      if(!monthMap.has(key)) monthMap.set(key, 0);
+      monthMap.set(key, monthMap.get(key) + total);
+    });
+    const branchMonths = new Map();
+    for(const [key, total] of monthMap){
+      const [branch, month] = key.split('|');
+      if(!branchMonths.has(branch)) branchMonths.set(branch, new Map());
+      branchMonths.get(branch).set(month, total);
+    }
+    const results = [];
+    for(const [branch, months] of branchMonths){
+      const sortedMonths = Array.from(months.keys()).sort();
+      const entries = sortedMonths.map(m => ({ month: m, sales: months.get(m) }));
+      for(let i = 1; i < entries.length; i++){
+        const prev = entries[i-1].sales, curr = entries[i].sales;
+        const growth = prev > 0 ? ((curr - prev) / prev) * 100 : 0;
+        const currentMonthRange = getMonthDateRange(entries[i].month);
+        const previousMonthRange = getMonthDateRange(entries[i-1].month);
+        results.push({
+          branch, month: entries[i].month, monthRange: currentMonthRange,
+          previousMonth: entries[i-1].month, previousMonthRange,
+          current: curr, previous: prev, growth,
+          growthLabel: growth > 5 ? '📈 Growing' : growth < -5 ? '📉 Declining' : '➡️ Stable'
+        });
+      }
+    }
+    results.sort((a,b) => b.growth - a.growth);
+    return results;
+  }
 
-                    let html = '';
-                    let totalSales = 0,
-                        totalCustomers = 0;
-                    filtered.forEach(row => {
-                        const dateF = formatDate(row[0]);
-                        const cash = Number(row[2] || 0);
-                        const mpesa = Number(row[3] || 0);
-                        const card = Number(row[4] || 0);
-                        const invoice = Number(row[5] || 0);
-                        const total = Number(row[6] || 0);
-                        const customers = Number(row[7] || 0);
-                        const bval = customers > 0 ? (total / customers) : 0;
-                        totalSales += total;
-                        totalCustomers += customers;
+  function calculateWoW(rows){
+    const weekMap = new Map();
+    rows.forEach(r => {
+      const ds = extractDateString(r[0]);
+      if(!ds) return;
+      const weekNum = getWeekOfYear(ds);
+      const year = ds.substring(0,4);
+      const weekKey = `${year}-W${String(weekNum).padStart(2,'0')}`;
+      const branch = String(r[1] || '').trim().toUpperCase();
+      const key = branch + '|' + weekKey;
+      const total = Number(r[6] || 0);
+      if(!weekMap.has(key)) weekMap.set(key, 0);
+      weekMap.set(key, weekMap.get(key) + total);
+    });
+    const branchWeeks = new Map();
+    for(const [key, total] of weekMap){
+      const [branch, week] = key.split('|');
+      if(!branchWeeks.has(branch)) branchWeeks.set(branch, new Map());
+      branchWeeks.get(branch).set(week, total);
+    }
+    const results = [];
+    for(const [branch, weeks] of branchWeeks){
+      const sortedWeeks = Array.from(weeks.keys()).sort();
+      const entries = sortedWeeks.map(w => ({ week: w, sales: weeks.get(w) }));
+      for(let i = 1; i < entries.length; i++){
+        const prev = entries[i-1].sales, curr = entries[i].sales;
+        const growth = prev > 0 ? ((curr - prev) / prev) * 100 : 0;
+        const prevWeekNum = parseInt(entries[i-1].week.split('-W')[1]);
+        const currWeekNum = parseInt(entries[i].week.split('-W')[1]);
+        const year = entries[i].week.split('-')[0];
+        const currentWeekRange = getWeekDateRange(currWeekNum, parseInt(year));
+        const previousWeekRange = getWeekDateRange(prevWeekNum, parseInt(year));
+        results.push({
+          branch, week: entries[i].week, weekNumber: currWeekNum, weekRange: currentWeekRange,
+          previousWeek: entries[i-1].week, previousWeekNumber: prevWeekNum, previousWeekRange,
+          current: curr, previous: prev, growth,
+          growthLabel: growth > 10 ? '📈 Strong' : growth > 0 ? '📈 Up' : growth < -10 ? '📉 Drop' : '➡️ Stable'
+        });
+      }
+    }
+    results.sort((a,b) => b.growth - a.growth);
+    return results;
+  }
 
-                        html += `<tr>
-                            <td>${dateF}</td>
-                            <td>${row[1] || ''}</td>
-                            <td>${cash.toLocaleString()}</td>
-                            <td>${mpesa.toLocaleString()}</td>
-                            <td>${card.toLocaleString()}</td>
-                            <td>${invoice.toLocaleString()}</td>
-                            <td><strong>${total.toLocaleString()}</strong></td>
-                            <td>${customers}</td>
-                            <td>${bval.toFixed(2)}</td>
-                        </tr>`;
-                    });
+  function calculateRanking(rows){
+    const branchMap = new Map();
+    rows.forEach(r => {
+      const branch = String(r[1] || '').trim().toUpperCase();
+      if(!branch) return;
+      const total = Number(r[6] || 0);
+      if(!branchMap.has(branch)) branchMap.set(branch, 0);
+      branchMap.set(branch, branchMap.get(branch) + total);
+    });
+    const rankings = Array.from(branchMap.entries()).map(([branch, sales]) => ({
+      branch, sales,
+      dailyTarget: DAILY_TARGETS[branch] || 0,
+      monthlyTarget: getMonthlyTarget(branch),
+      achievement: DAILY_TARGETS[branch] ? (sales / getMonthlyTarget(branch)) * 100 : null
+    }));
+    rankings.sort((a,b) => b.sales - a.sales);
+    return rankings.map((item, idx) => ({ ...item, rank: idx+1, rankLabel: idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx+1}` }));
+  }
 
-                    salesTable.innerHTML = html;
-                    rowCountEl.textContent = `${filtered.length} rows`;
+  function renderBranchKPIs(rows){
+    const branchMap = new Map();
+    let totalGlobalSales = 0;
+    rows.forEach(r => {
+      const branch = String(r[1] || '').trim().toUpperCase();
+      if(!branch) return;
+      const total = Number(r[6] || 0);
+      totalGlobalSales += total;
+      if(!branchMap.has(branch)) branchMap.set(branch, { sales:0, customers:0, days:new Set() });
+      const e = branchMap.get(branch);
+      e.sales += total;
+      e.customers += Number(r[7] || 0);
+      const ds = extractDateString(r[0]);
+      if(ds) e.days.add(ds);
+    });
+    let html = '';
+    for(const [branch, data] of branchMap){
+      const share = totalGlobalSales > 0 ? (data.sales / totalGlobalSales) * 100 : 0;
+      const basketVal = data.customers > 0 ? data.sales / data.customers : 0;
+      const dayCount = data.days.size;
+      const avgDaily = dayCount > 0 ? data.sales / dayCount : 0;
+      const normKey = normalizeBranch(branch);
+      const dailyTarget = DAILY_TARGETS[normKey] || 0;
+      html += `
+        <div class="col-md-3 col-6 mb-2">
+          <div class="branch-kpi-card">
+            ${dailyTarget > 0 ? progressRing(share, {size:56, stroke:6}) : `<div class="ring-standalone" style="width:56px;height:56px;border-radius:50%;background:var(--surface-2);color:var(--ink-faint);font-size:.7rem;font-weight:700;">${share.toFixed(1)}%</div>`}
+            <div class="flex-grow-1">
+              <div class="branch-name">${branch}</div>
+              <div class="kpi-mini"><span>Sales</span><b>${data.sales.toLocaleString()}</b></div>
+              <div class="kpi-mini"><span>Customers</span><b>${data.customers}</b></div>
+              <div class="kpi-mini"><span>Basket</span><b>${basketVal.toFixed(2)}</b></div>
+              <div class="kpi-mini"><span>Avg/day</span><b>${avgDaily.toFixed(0)} <span style="color:var(--ink-faint);font-weight:500;">/${dayCount}d</span></b></div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    branchKpiRow.innerHTML = html || `<div class="col-12 text-muted text-center py-3">No branch data</div>`;
+  }
 
-                    const basket = totalCustomers > 0 ? (totalSales / totalCustomers) : 0;
-                    updateKPIs(totalSales, totalCustomers, basket);
-                    updateCharts(filtered);
+  function renderOverview(rows){
+    const totalSales = rows.reduce((s,r) => s + Number(r[6] || 0), 0);
+    const totalCustomers = rows.reduce((s,r) => s + Number(r[7] || 0), 0);
+    const basket = totalCustomers > 0 ? totalSales / totalCustomers : 0;
+    const days = countDistinctDays(rows);
+    const avgDaily = days > 0 ? totalSales / days : 0;
+    const stats = calculateTargetStats(rows);
+    const avgAchiev = stats.avgAchievement;
+    totalSalesEl.textContent = totalSales.toLocaleString();
+    customersEl.textContent = totalCustomers;
+    basketEl.textContent = basket.toFixed(2);
+    avgAchievementEl.textContent = avgAchiev.toFixed(2) + '%';
+    totalSalesSub.textContent = `${days} days · avg ${avgDaily.toFixed(0)}/day`;
+    customersSub.textContent = `${days} days · ${(totalCustomers/(days||1)).toFixed(1)} avg/day`;
+    basketSub.textContent = 'avg per customer';
+    avgAchievementSub.textContent = `${CURRENT_MONTH} target branches`;
+    filterIndicator.textContent = getDateRangeLabel(rows);
+    renderBranchKPIs(rows);
+    let html = `
+      <div class="card-modern fade-in">
+        <div class="card-header">Summary — ${getDateRangeLabel(rows)}</div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6"><div class="chart-container"><canvas id="overviewChart"></canvas></div></div>
+            <div class="col-md-6"><div class="table-responsive"><table class="table table-modern mb-0"><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>
+              <tr><td>Total Sales</td><td><strong>${totalSales.toLocaleString()}</strong></td></tr>
+              <tr><td>Total Customers</td><td><strong>${totalCustomers}</strong></td></tr>
+              <tr><td>Basket Value</td><td><strong>${basket.toFixed(2)}</strong></td></tr>
+              <tr><td>Avg Daily Sales</td><td><strong>${avgDaily.toFixed(0)}</strong> (${days} days)</td></tr>
+              <tr><td>Avg Achievement (targets)</td><td><strong>${avgAchiev.toFixed(2)}%</strong></td></tr>
+              <tr><td>Rows / Days</td><td><strong>${rows.length}</strong> rows · ${days} days</td></tr>
+            </tbody></table></div></div>
+          </div>
+        </div>
+      </div>
+    `;
+    dynamicPanel.innerHTML = html;
+    setTimeout(() => {
+      const ctx = document.getElementById('overviewChart');
+      if(!ctx) return;
+      if(chartMain){ chartMain.destroy(); chartMain = null; }
+      const dayMap = new Map();
+      rows.forEach(r => { const ds = extractDateString(r[0]); if(!ds) return; const total = Number(r[6] || 0); dayMap.set(ds, (dayMap.get(ds) || 0) + total); });
+      const sorted = Array.from(dayMap.entries()).sort((a,b) => a[0].localeCompare(b[0]));
+      const labels = sorted.map(d => d[0].slice(5)), data = sorted.map(d => d[1]);
+      const isDark = document.body.classList.contains('theme-dark');
+      chartMain = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: labels.length ? labels : ['No data'], datasets: [{ label:'Daily Sales', data: data.length ? data : [0], backgroundColor:'rgba(91,110,245,0.55)', borderRadius:5, maxBarThickness:22 }] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{ beginAtZero:true, grid:{color:isDark?'rgba(255,255,255,.06)':'rgba(15,23,42,.05)'}, ticks:{color:isDark?'#9AA3BC':'#8892A6'} }, x:{ grid:{display:false}, ticks:{color:isDark?'#9AA3BC':'#8892A6'} } } }
+      });
+    }, 60);
+    renderSparklines(rows);
+  }
 
-                    dataLoadAttempted = true;
+  function renderSparklines(rows){
+    const salesCtx = document.getElementById('sparkSales'), custCtx = document.getElementById('sparkCustomers');
+    if(!salesCtx || !custCtx) return;
+    if(sparkSalesChart){ sparkSalesChart.destroy(); sparkSalesChart = null; }
+    if(sparkCustomersChart){ sparkCustomersChart.destroy(); sparkCustomersChart = null; }
+    const dayMap = new Map();
+    rows.forEach(r => {
+      const ds = extractDateString(r[0]);
+      if(!ds) return;
+      if(!dayMap.has(ds)) dayMap.set(ds, { sales:0, customers:0 });
+      const e = dayMap.get(ds);
+      e.sales += Number(r[6] || 0);
+      e.customers += Number(r[7] || 0);
+    });
+    const sorted = Array.from(dayMap.entries()).sort((a,b) => a[0].localeCompare(b[0]));
+    const salesData = sorted.map(d => d[1].sales), custData = sorted.map(d => d[1].customers);
+    const sparkOpts = (color) => ({
+      type:'line',
+      data:{ labels:sorted.map(d=>d[0]), datasets:[{ data:[], borderColor:color, borderWidth:2, pointRadius:0, tension:.35, fill:true, backgroundColor:color.replace('1)','.12)') }] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{enabled:false}}, scales:{ x:{display:false}, y:{display:false} }, elements:{ line:{ borderJoinStyle:'round' } } }
+    });
+    const salesOpts = sparkOpts('rgba(91,110,245,1)'); salesOpts.data.datasets[0].data = salesData.length ? salesData : [0];
+    const custOpts = sparkOpts('rgba(22,185,129,1)'); custOpts.data.datasets[0].data = custData.length ? custData : [0];
+    sparkSalesChart = new Chart(salesCtx, salesOpts);
+    sparkCustomersChart = new Chart(custCtx, custOpts);
+  }
 
-                } catch (err) {
-                    console.error('Load error:', err);
-                    setStatus('error', 'Error loading data');
-                    // Fallback to demo if not already using it
-                    if (!usingDemoData) {
-                        cachedData = generateDemoData();
-                        usingDemoData = true;
-                        dataModeBadge.textContent = 'DEMO';
-                        dataModeBadge.style.background = '#f59e0b';
-                        setStatus('success', 'Demo data (error recovery)');
-                        loadSales(false);
-                        return;
-                    }
-                    renderEmpty('Error loading data. Please check connection.');
-                    updateCharts([]);
-                    updateKPIs(0, 0, 0);
-                }
-            }
+  function renderTargets(rows){
+    const stats = calculateTargetStats(rows);
+    const { branches, avgAchievement } = stats;
+    avgAchievementEl.textContent = avgAchievement.toFixed(2) + '%';
+    avgAchievementSub.textContent = `${CURRENT_MONTH} target branches`;
+    let cardsHtml = '<div class="row g-3 mb-3">';
+    if(!branches.length) cardsHtml += `<div class="col-12"><div class="card-modern"><div class="card-body text-center text-muted py-4">No target branches for ${CURRENT_MONTH}</div></div></div>`;
+    else branches.forEach(b => {
+      cardsHtml += `<div class="col-md-4"><div class="card-modern h-100"><div class="card-body d-flex align-items-center gap-3">${progressRing(b.achievement,{size:70,stroke:8})}<div><div style="font-weight:700;">${b.displayName}</div><span class="badge-achievement ${b.status}">${b.statusLabel}</span><div class="stat-sub mt-1">${b.gap>=0?'Remaining':'Over target'}: <strong>${Math.abs(b.gap).toLocaleString()}</strong></div></div></div></div></div>`;
+    });
+    cardsHtml += '</div>';
+    let html = cardsHtml + `<div class="card-modern fade-in"><div class="card-header">Branch Target Achievement — ${CURRENT_MONTH}</div><div class="card-body p-0"><div class="table-responsive"><table class="table table-modern mb-0"><thead><tr><th>Branch</th><th>Daily Target</th><th>Monthly Target</th><th>Actual</th><th>Achievement</th><th>Gap</th><th>Status</th></tr></thead><tbody>`;
+    if(!branches.length) html += `<tr><td colspan="7" class="text-center text-muted py-4">No target branches</td></tr>`;
+    else branches.forEach(b => {
+      html += `<tr><td><strong>${b.displayName}</strong></td><td>${b.dailyTarget.toLocaleString()}</td><td>${b.monthlyTarget.toLocaleString()}</td><td>${b.actual.toLocaleString()}</td><td><strong>${b.achievement.toFixed(2)}%</strong></td><td>${b.gap>=0?'✅':'🔴'} ${Math.abs(b.gap).toLocaleString()}</td><td><span class="badge-achievement ${b.status}">${b.statusLabel}</span></td></tr><tr class="bg-light"><td colspan="7" style="padding:0.4rem 1rem;"><div class="computation-box"><span class="label">Computation:</span> Daily Target <span class="value">${b.dailyTarget.toLocaleString()}</span> × ${DAYS_IN_MONTH} days = <span class="highlight">${b.monthlyTarget.toLocaleString()}</span> &nbsp;|&nbsp; Actual <span class="value">${b.actual.toLocaleString()}</span> ÷ Target × 100 = <span class="highlight">${b.achievement.toFixed(2)}%</span></div></td></tr>`;
+    });
+    html += `</tbody></table></div></div></div>`;
+    dynamicPanel.innerHTML = html;
+    updateKPIs(rows);
+    renderBranchKPIs(rows);
+    renderSparklines(rows);
+  }
 
-            function renderEmpty(msg) {
-                salesTable.innerHTML = `<tr><td colspan="9" class="text-center text-muted py-4">${msg}</td></tr>`;
-                rowCountEl.textContent = '0 rows';
-            }
+  function renderMoM(rows){
+    const data = calculateMoM(rows);
+    const avgGrowth = data.length ? data.reduce((s,i) => s + i.growth, 0) / data.length : 0;
+    avgAchievementEl.textContent = avgGrowth.toFixed(2) + '%';
+    avgAchievementSub.textContent = 'avg MoM growth';
+    let html = `<div class="card-modern fade-in"><div class="card-header">Month on Month Growth</div><div class="card-body p-0"><div class="table-responsive"><table class="table table-modern mb-0"><thead><tr><th>Branch</th><th>Current Month</th><th>Previous Month</th><th>Current Sales</th><th>Previous Sales</th><th>Growth</th><th>Trend</th></tr></thead><tbody>`;
+    if(!data.length) html += `<tr><td colspan="7" class="text-center text-muted py-4">No MoM data</td></tr>`;
+    else data.slice(0,20).forEach(item => {
+      const color = item.growth > 0 ? 'var(--good)' : item.growth < 0 ? 'var(--bad)' : 'var(--ink-faint)';
+      html += `<tr><td><strong>${item.branch}</strong></td><td><span class="date-range-badge">${item.month} (${item.monthRange})</span></td><td><span class="date-range-badge">${item.previousMonth} (${item.previousMonthRange})</span></td><td>${item.current.toLocaleString()}</td><td>${item.previous.toLocaleString()}</td><td style="color:${color};font-weight:700;">${item.growth>0?'+':''}${item.growth.toFixed(2)}%</td><td>${item.growthLabel}</td></tr><tr class="bg-light"><td colspan="7" style="padding:0.4rem 1rem;"><div class="computation-box"><span class="label">Computation:</span> ${item.month} Sales <span class="value">${item.current.toLocaleString()}</span> - ${item.previousMonth} Sales <span class="value">${item.previous.toLocaleString()}</span> = <span class="highlight">${(item.current-item.previous)>0?'+':''}${(item.current-item.previous).toLocaleString()}</span> &nbsp;|&nbsp; Growth: <span class="highlight">${item.growth.toFixed(2)}%</span></div></td></tr>`;
+    });
+    html += `</tbody></table></div></div></div>`;
+    dynamicPanel.innerHTML = html;
+    updateKPIs(rows);
+    renderBranchKPIs(rows);
+    renderSparklines(rows);
+  }
 
-            function updateKPIs(total, customers, basket) {
-                totalSalesEl.textContent = total.toLocaleString();
-                customersEl.textContent = customers;
-                basketEl.textContent = basket.toFixed(2);
-            }
+  function renderWoW(rows){
+    const data = calculateWoW(rows);
+    const avgGrowth = data.length ? data.reduce((s,i) => s + i.growth, 0) / data.length : 0;
+    avgAchievementEl.textContent = avgGrowth.toFixed(2) + '%';
+    avgAchievementSub.textContent = 'avg WoW growth';
+    let html = `<div class="card-modern fade-in"><div class="card-header">Week on Week Growth</div><div class="card-body p-0"><div class="table-responsive"><table class="table table-modern mb-0"><thead><tr><th>Branch</th><th>Current Week</th><th>Previous Week</th><th>Current Sales</th><th>Previous Sales</th><th>Growth</th><th>Trend</th></tr></thead><tbody>`;
+    if(!data.length) html += `<tr><td colspan="7" class="text-center text-muted py-4">No WoW data</td></tr>`;
+    else data.slice(0,20).forEach(item => {
+      const color = item.growth > 0 ? 'var(--good)' : item.growth < 0 ? 'var(--bad)' : 'var(--ink-faint)';
+      html += `<tr><td><strong>${item.branch}</strong></td><td><span class="date-range-badge">Week ${item.weekNumber} (${item.weekRange})</span></td><td><span class="date-range-badge">Week ${item.previousWeekNumber} (${item.previousWeekRange})</span></td><td>${item.current.toLocaleString()}</td><td>${item.previous.toLocaleString()}</td><td style="color:${color};font-weight:700;">${item.growth>0?'+':''}${item.growth.toFixed(2)}%</td><td>${item.growthLabel}</td></tr><tr class="bg-light"><td colspan="7" style="padding:0.4rem 1rem;"><div class="computation-box"><span class="label">Computation:</span> Week ${item.weekNumber} Sales <span class="value">${item.current.toLocaleString()}</span> - Week ${item.previousWeekNumber} Sales <span class="value">${item.previous.toLocaleString()}</span> = <span class="highlight">${(item.current-item.previous)>0?'+':''}${(item.current-item.previous).toLocaleString()}</span> &nbsp;|&nbsp; Growth: <span class="highlight">${item.growth.toFixed(2)}%</span></div></td></tr>`;
+    });
+    html += `</tbody></table></div></div></div>`;
+    dynamicPanel.innerHTML = html;
+    updateKPIs(rows);
+    renderBranchKPIs(rows);
+    renderSparklines(rows);
+  }
 
-            // ------------------------------------------------------------
-            //  CHARTS
-            // ------------------------------------------------------------
-            function updateCharts(rows) {
-                if (!rows || rows.length === 0) {
-                    if (branchChartInstance) { branchChartInstance.destroy();
-                        branchChartInstance = null; }
-                    if (trendChartInstance) { trendChartInstance.destroy();
-                        trendChartInstance = null; }
-                    return;
-                }
+  function renderRanking(rows){
+    const rankings = calculateRanking(rows);
+    const avgAchiev = rankings.length ? rankings.reduce((s,i) => s + (i.achievement || 0), 0) / rankings.length : 0;
+    avgAchievementEl.textContent = avgAchiev.toFixed(2) + '%';
+    avgAchievementSub.textContent = 'avg achievement';
+    const top = rankings.slice(0,5), bottom = rankings.slice(-5).reverse();
+    let html = `<div class="row g-3"><div class="col-md-6"><div class="card-modern h-100 fade-in"><div class="card-header">Top 5 Branches</div><div class="card-body p-0"><div class="table-responsive"><table class="table table-modern mb-0"><thead><tr><th>Rank</th><th>Branch</th><th>Sales</th><th>Achievement</th></tr></thead><tbody>`;
+    if(!top.length) html += `<tr><td colspan="4" class="text-center text-muted py-4">No data</td></tr>`;
+    else top.forEach(item => {
+      html += `<tr><td><span class="rank-medal">${item.rankLabel}</span></td><td><strong>${item.branch}</strong></td><td>${item.sales.toLocaleString()}</td><td>${item.achievement ? item.achievement.toFixed(2)+'%' : 'N/A'}</td></tr><tr class="bg-light"><td colspan="4" style="padding:0.4rem 1rem;"><div class="computation-box"><span class="label">Computation:</span> Sales <span class="value">${item.sales.toLocaleString()}</span> ÷ Monthly Target <span class="value">${item.monthlyTarget.toLocaleString()}</span> × 100 = <span class="highlight">${item.achievement ? item.achievement.toFixed(2)+'%' : 'N/A'}</span></div></td></tr>`;
+    });
+    html += `</tbody></table></div></div></div></div><div class="col-md-6"><div class="card-modern h-100 fade-in"><div class="card-header">Bottom 5 Branches</div><div class="card-body p-0"><div class="table-responsive"><table class="table table-modern mb-0"><thead><tr><th>Rank</th><th>Branch</th><th>Sales</th><th>Achievement</th></tr></thead><tbody>`;
+    if(!bottom.length) html += `<tr><td colspan="4" class="text-center text-muted py-4">No data</td></tr>`;
+    else bottom.forEach((item, idx) => {
+      const rankNum = rankings.length - idx;
+      html += `<tr><td><span class="rank-number">#${rankNum}</span></td><td><strong>${item.branch}</strong></td><td>${item.sales.toLocaleString()}</td><td>${item.achievement ? item.achievement.toFixed(2)+'%' : 'N/A'}</td></tr><tr class="bg-light"><td colspan="4" style="padding:0.4rem 1rem;"><div class="computation-box"><span class="label">Computation:</span> Sales <span class="value">${item.sales.toLocaleString()}</span> ÷ Monthly Target <span class="value">${item.monthlyTarget.toLocaleString()}</span> × 100 = <span class="highlight">${item.achievement ? item.achievement.toFixed(2)+'%' : 'N/A'}</span></div></td></tr>`;
+    });
+    html += `</tbody></table></div></div></div></div></div><div class="row mt-3"><div class="col-12"><div class="card-modern fade-in"><div class="card-header">Full Ranking</div><div class="card-body p-0"><div class="table-responsive"><table class="table table-modern mb-0"><thead><tr><th>Rank</th><th>Branch</th><th>Sales</th><th>Monthly Target</th><th>Achievement</th></tr></thead><tbody>`;
+    if(!rankings.length) html += `<tr><td colspan="5" class="text-center text-muted py-4">No data</td></tr>`;
+    else rankings.forEach((item, idx) => {
+      html += `<tr><td><span class="rank-number">#${idx+1}</span></td><td><strong>${item.branch}</strong></td><td>${item.sales.toLocaleString()}</td><td>${item.monthlyTarget.toLocaleString()}</td><td>${item.achievement ? item.achievement.toFixed(2)+'%' : 'N/A'}</td></tr><tr class="bg-light"><td colspan="5" style="padding:0.4rem 1rem;"><div class="computation-box"><span class="label">Computation:</span> Daily Target <span class="value">${item.dailyTarget.toLocaleString()}</span> × ${DAYS_IN_MONTH} days = <span class="highlight">${item.monthlyTarget.toLocaleString()}</span> &nbsp;|&nbsp; Achievement: <span class="highlight">${item.achievement ? item.achievement.toFixed(2)+'%' : 'N/A'}</span></div></td></tr>`;
+    });
+    html += `</tbody></table></div></div></div></div></div>`;
+    dynamicPanel.innerHTML = html;
+    updateKPIs(rows);
+    renderBranchKPIs(rows);
+    renderSparklines(rows);
+  }
 
-                // Branch chart
-                const branchMap = new Map();
-                rows.forEach(r => {
-                    const branch = String(r[1] || 'Unknown').trim();
-                    const total = Number(r[6] || 0);
-                    branchMap.set(branch, (branchMap.get(branch) || 0) + total);
-                });
-                const sorted = Array.from(branchMap.entries()).sort((a, b) => b[1] - a[1]);
-                const labels = sorted.map(e => e[0]);
-                const values = sorted.map(e => e[1]);
+  function updateKPIs(rows){
+    const totalSales = rows.reduce((s,r) => s + Number(r[6] || 0), 0);
+    const totalCustomers = rows.reduce((s,r) => s + Number(r[7] || 0), 0);
+    totalSalesEl.textContent = totalSales.toLocaleString();
+    customersEl.textContent = totalCustomers;
+    basketEl.textContent = totalCustomers > 0 ? (totalSales / totalCustomers).toFixed(2) : '0.00';
+    totalSalesSub.textContent = getDateRangeLabel(rows);
+    customersSub.textContent = getDateRangeLabel(rows);
+    basketSub.textContent = 'avg per customer';
+    filterIndicator.textContent = getDateRangeLabel(rows);
+  }
 
-                const ctx1 = document.getElementById('branchChart').getContext('2d');
-                if (branchChartInstance) branchChartInstance.destroy();
-                branchChartInstance = new Chart(ctx1, {
-                    type: 'bar',
-                    data: {
-                        labels: labels.length ? labels : ['No data'],
-                        datasets: [{
-                            label: 'Total Sales',
-                            data: values.length ? values : [0],
-                            backgroundColor: ['#3b82f6', '#8b5cf6', '#06b6d4', '#f59e0b', '#ef4444', '#10b981'],
-                            borderRadius: 6,
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } } }
-                    }
-                });
+  function exportAllToExcel(){
+    if(!filteredRows || !filteredRows.length){ showToast('No data to export.','error'); return; }
+    const wb = XLSX.utils.book_new();
+    const rawHeader = ['DATE','BRANCH','CASH','MPESA','CREDIT CARD','INVOICE','TOTAL','CUSTOMERS','B/VALUE'];
+    const rawRows = filteredRows.map(r => {
+      const total = Number(r[6] || 0), cust = Number(r[7] || 0), bval = cust > 0 ? total / cust : 0;
+      return [formatDateForDisplay(r[0]), String(r[1] || ''), Number(r[2] || 0), Number(r[3] || 0), Number(r[4] || 0), Number(r[5] || 0), total, cust, bval];
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([rawHeader, ...rawRows]), 'Raw Data');
+    const targetStats = calculateTargetStats(filteredRows);
+    const targetHeader = ['Branch','Daily Target','Monthly Target','Actual Sales','Achievement %','Gap','Status'];
+    const targetRows = targetStats.branches.map(b => [b.displayName, b.dailyTarget, b.monthlyTarget, b.actual, b.achievement.toFixed(2)+'%', b.gap, b.statusLabel]);
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([targetHeader, ...targetRows]), 'Target Achievement');
+    const momData = calculateMoM(filteredRows);
+    const momHeader = ['Branch','Current Month','Current Month Range','Previous Month','Previous Month Range','Current Sales','Previous Sales','Growth %','Trend'];
+    const momRows = momData.map(item => [item.branch, item.month, item.monthRange, item.previousMonth, item.previousMonthRange, item.current, item.previous, item.growth.toFixed(2)+'%', item.growthLabel]);
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([momHeader, ...momRows]), 'Month on Month');
+    const wowData = calculateWoW(filteredRows);
+    const wowHeader = ['Branch','Current Week','Current Week Range','Previous Week','Previous Week Range','Current Sales','Previous Sales','Growth %','Trend'];
+    const wowRows = wowData.map(item => [item.branch, item.week, item.weekRange, item.previousWeek, item.previousWeekRange, item.current, item.previous, item.growth.toFixed(2)+'%', item.growthLabel]);
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([wowHeader, ...wowRows]), 'Week on Week');
+    const rankingData = calculateRanking(filteredRows);
+    const rankHeader = ['Rank','Branch','Total Sales','Monthly Target','Achievement %'];
+    const rankRows = rankingData.map(item => [item.rank, item.branch, item.sales, item.monthlyTarget, item.achievement ? item.achievement.toFixed(2)+'%' : 'N/A']);
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([rankHeader, ...rankRows]), 'Branch Rankings');
+    XLSX.writeFile(wb, `XanaLife_All_Modules_${new Date().toISOString().slice(0,10)}.xlsx`);
+    showToast('Export ready — file downloaded.','success');
+  }
 
-                // Trend chart
-                const dateMap = new Map();
-                rows.forEach(r => {
-                    const ds = extractDateString(r[0]);
-                    if (!ds) return;
-                    const total = Number(r[6] || 0);
-                    dateMap.set(ds, (dateMap.get(ds) || 0) + total);
-                });
-                const sortedDates = Array.from(dateMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
-                const dateLabels = sortedDates.map(e => {
-                    const parts = e[0].split('-');
-                    return `${parts[2]}/${parts[1]}`;
-                });
-                const dateValues = sortedDates.map(e => e[1]);
+  function fmt(d){ return d.toISOString().split('T')[0]; }
 
-                const ctx2 = document.getElementById('trendChart').getContext('2d');
-                if (trendChartInstance) trendChartInstance.destroy();
-                trendChartInstance = new Chart(ctx2, {
-                    type: 'line',
-                    data: {
-                        labels: dateLabels.length ? dateLabels : ['No data'],
-                        datasets: [{
-                            label: 'Daily Sales',
-                            data: dateValues.length ? dateValues : [0],
-                            borderColor: '#2563eb',
-                            backgroundColor: 'rgba(37,99,235,0.08)',
-                            fill: true,
-                            tension: 0.2,
-                            pointRadius: 3,
-                            pointBackgroundColor: '#2563eb',
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } } }
-                    }
-                });
-            }
+  function applyQuickRange(type){
+    document.querySelectorAll('.range-chip').forEach(c => c.classList.toggle('active', c.dataset.range === type));
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    
+    if(type === 'today'){
+      startInput.value = todayStr;
+      endInput.value = todayStr;
+    }
+    else if(type === '7d'){
+      const s = new Date(today);
+      s.setDate(s.getDate() - 6);
+      startInput.value = fmt(s);
+      endInput.value = todayStr;
+    }
+    else if(type === 'month'){
+      startInput.value = getMonthStart();
+      endInput.value = getMonthEnd();
+    }
+    else if(type === 'all'){
+      startInput.value = '';
+      endInput.value = '';
+    }
+    document.querySelectorAll('.range-chip').forEach(c => c.classList.remove('active'));
+    const chip = document.querySelector(`.range-chip[data-range="${type}"]`);
+    if(chip) chip.classList.add('active');
+    updateDashboard(currentView);
+  }
 
-            // ------------------------------------------------------------
-            //  EXPORT EXCEL
-            // ------------------------------------------------------------
-            function exportToExcel() {
-                if (!filteredRows || filteredRows.length === 0) {
-                    alert('No data to export. Please apply filters to show records.');
-                    return;
-                }
-                const header = ['DATE', 'BRANCH', 'CASH SALES', 'MPESA SALES', 'CREDIT CARD SALES', 'INVOICE SALES',
-                    'TOTAL SALES', 'CUSTOMERS', 'B/VALUE'
-                ];
-                const rows = filteredRows.map(r => {
-                    const total = Number(r[6] || 0);
-                    const customers = Number(r[7] || 0);
-                    const bval = customers > 0 ? (total / customers) : 0;
-                    return [
-                        formatDate(r[0]),
-                        String(r[1] || ''),
-                        Number(r[2] || 0),
-                        Number(r[3] || 0),
-                        Number(r[4] || 0),
-                        Number(r[5] || 0),
-                        total,
-                        customers,
-                        bval
-                    ];
-                });
-                const wsData = [header, ...rows];
-                const wb = XLSX.utils.book_new();
-                const ws = XLSX.utils.aoa_to_sheet(wsData);
-                XLSX.utils.book_append_sheet(wb, ws, 'Sales');
-                XLSX.writeFile(wb, `XanaLife_Sales_${new Date().toISOString().slice(0,10)}.xlsx`);
-            }
+  async function updateDashboard(view){
+    view = view || currentView;
+    await loadData(false);
+    const rows = getFilteredData();
+    if(!rows || !rows.length){
+      dynamicPanel.innerHTML = `<div class="card-modern fade-in"><div class="card-body text-center text-muted py-5"><i class="bi bi-inbox display-4 d-block mb-3"></i>No data matches your filters<div class="mt-2"><button class="icon-btn" id="clearFiltersInline"><i class="bi bi-x-circle"></i>Clear filters</button></div></div></div>`;
+      const btn = document.getElementById('clearFiltersInline'); if(btn) btn.addEventListener('click', () => applyQuickRange('all'));
+      totalSalesEl.textContent = '0'; customersEl.textContent = '0'; basketEl.textContent = '0.00'; avgAchievementEl.textContent = '0%';
+      branchKpiRow.innerHTML = ''; filterIndicator.textContent = 'No data';
+      return;
+    }
+    updateBranchFilter(rows);
+    filteredRows = rows;
+    if(chartMain){ chartMain.destroy(); chartMain = null; }
+    switch(view){
+      case 'overview': pageTitle.innerHTML = '<i class="bi bi-grid-1x2-fill me-2" style="color:var(--accent);"></i>Overview'; renderOverview(rows); break;
+      case 'targets': pageTitle.innerHTML = '<i class="bi bi-bullseye me-2" style="color:var(--accent);"></i>Targets'; renderTargets(rows); break;
+      case 'mom': pageTitle.innerHTML = '<i class="bi bi-arrow-up-right-circle me-2" style="color:var(--accent);"></i>Month on Month'; renderMoM(rows); break;
+      case 'wow': pageTitle.innerHTML = '<i class="bi bi-calendar-week me-2" style="color:var(--accent);"></i>Week on Week'; renderWoW(rows); break;
+      case 'ranking': pageTitle.innerHTML = '<i class="bi bi-trophy me-2" style="color:var(--accent);"></i>Top / Bottom'; renderRanking(rows); break;
+      default: renderOverview(rows);
+    }
+    setStatus('success', `${rows.length} rows · LIVE data`);
+  }
 
-            // ------------------------------------------------------------
-            //  INIT
-            // ------------------------------------------------------------
-            document.addEventListener('DOMContentLoaded', function() {
-                // Set default date range (last 30 days)
-                const today = new Date();
-                const thirtyDaysAgo = new Date(today);
-                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-                startInput.value = thirtyDaysAgo.toISOString().split('T')[0];
-                endInput.value = today.toISOString().split('T')[0];
-
-                // Load data
-                loadSales(false);
-
-                // Event listeners
-                document.getElementById('searchBtn').addEventListener('click', function() {
-                    loadSales(false);
-                });
-                branchSelect.addEventListener('change', function() {
-                    loadSales(false);
-                });
-                startInput.addEventListener('change', function() {
-                    loadSales(false);
-                });
-                endInput.addEventListener('change', function() {
-                    loadSales(false);
-                });
-                exportBtn.addEventListener('click', exportToExcel);
-                refreshBtn.addEventListener('click', function() {
-                    cachedData = null;
-                    loadSales(true);
-                });
-            });
-
-        })();
-    </script>
+  document.addEventListener('DOMContentLoaded', function(){
+    startInput.value = getMonthStart();
+    endInput.value = getMonthEnd();
+    
+    document.querySelectorAll('.nav-item[data-view]').forEach(el => {
+      el.addEventListener('click', function(){
+        const view = this.dataset.view;
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        this.classList.add('active');
+        currentView = view;
+        updateDashboard(view);
+        sidebar.classList.remove('open');
+        overlay.classList.remove('open');
+      });
+    });
+    document.querySelectorAll('.range-chip').forEach(chip => chip.addEventListener('click', () => applyQuickRange(chip.dataset.range)));
+    document.getElementById('sidebarToggle').addEventListener('click', function(){ sidebar.classList.toggle('open'); overlay.classList.toggle('open'); });
+    overlay.addEventListener('click', function(){ sidebar.classList.remove('open'); overlay.classList.remove('open'); });
+    document.getElementById('searchBtn').addEventListener('click', () => { document.querySelectorAll('.range-chip').forEach(c => c.classList.remove('active')); updateDashboard(currentView); });
+    document.getElementById('resetFiltersBtn').addEventListener('click', () => { branchSelect.value = ''; applyQuickRange('month'); });
+    branchSelect.addEventListener('change', () => updateDashboard(currentView));
+    startInput.addEventListener('change', () => { document.querySelectorAll('.range-chip').forEach(c => c.classList.remove('active')); updateDashboard(currentView); });
+    endInput.addEventListener('change', () => { document.querySelectorAll('.range-chip').forEach(c => c.classList.remove('active')); updateDashboard(currentView); });
+    exportBtn.addEventListener('click', exportAllToExcel);
+    refreshBtn.addEventListener('click', function(){ cachedData = null; updateDashboard(currentView); showToast('Refreshing data…'); });
+    updateDashboard('overview');
+  });
+})();
+</script>
 </body>
 </html>
